@@ -23,15 +23,18 @@
       </thead>
       <tbody>
         {#each snapshot.links as link}
+          {@const sDev = snapshot.devices.find(d => d.id === link.source)}
+          {@const tDev = snapshot.devices.find(d => d.id === link.target)}
+          {@const linkOffline = link.status === 'offline' || sDev?.status === 'offline' || tDev?.status === 'offline'}
           <tr>
-            <td>{snapshot.devices.find(d=>d.id===link.source)?.name}</td>
-            <td>{snapshot.devices.find(d=>d.id===link.target)?.name}</td>
+            <td>{sDev?.name || link.source}</td>
+            <td>{tDev?.name || link.target}</td>
             <td>{link.capacity}</td>
             <td>
-              <StatusBadge status={link.status}/>
+              <StatusBadge status={linkOffline ? 'offline' : 'online'} />
             </td>
           </tr>
-          {/each}
+        {/each}
       </tbody>
     </table>
   </div>

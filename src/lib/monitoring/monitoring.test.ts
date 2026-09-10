@@ -3,15 +3,15 @@ import assert from 'node:assert/strict';
 import { createMockSnapshot, linkStatus } from './mock';
 import { createPoller } from './poller';
 import { createApiProvider } from './api';
-test('warning recovery propagates consistently through devices and links', () => {
-    const warning = createMockSnapshot(0), recovered = createMockSnapshot(3);
-    assert.equal(warning.devices.find(d => d.id === 'linux-bridge')?.status, 'warning');
-    assert.equal(warning.links.find(l => l.target === 'linux-bridge')?.status, 'warning');
-    assert.equal(recovered.devices.find(d => d.id === 'linux-bridge')?.status, 'online');
-    assert.equal(recovered.links.find(l => l.target === 'linux-bridge')?.status, 'online');
-    assert.equal(linkStatus('warning', 'offline'), 'offline');
-    assert.equal(new Set(warning.devices.map(d => d.id)).size, warning.devices.length);
+test('device and link status propagate consistently', () => {
+    const snapshot = createMockSnapshot(0);
+    assert.equal(snapshot.devices.find(d => d.id === 'vmbr1')?.status, 'online');
+    assert.equal(snapshot.links.find(l => l.target === 'vmbr1')?.status, 'online');
+    assert.equal(linkStatus('online', 'offline'), 'offline');
+    assert.equal(linkStatus('online', 'online'), 'online');
+    assert.equal(new Set(snapshot.devices.map(d => d.id)).size, snapshot.devices.length);
 });
+
 
 test('poller prevents overlap, supports manual refresh while paused, and aborts on disposal', async () => {
     let calls = 0, updates = 0, signal: AbortSignal | undefined;

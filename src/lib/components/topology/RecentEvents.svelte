@@ -12,13 +12,11 @@
   <ul class="mt-5 space-y-5">
     {#each events as event (event.id)}
       <li class="flex items-start gap-3">
-        {#if event.status==='warning'}
-          <TriangleAlert size={17} class="mt-1 shrink-0 text-amber-600"/>
-          {:else if event.status==='offline'}
-            <CircleX size={17} class="mt-1 shrink-0 text-red-600"/>
-            {:else}
-            <CircleCheck size={17} class="mt-1 shrink-0 text-green-600"/>
-            {/if}
+        {#if event.status==='offline'}
+          <CircleX size={17} class="mt-1 shrink-0 text-red-600"/>
+        {:else}
+          <CircleCheck size={17} class="mt-1 shrink-0 text-green-600"/>
+        {/if}
         <div>
           <p class="text-sm">{event.message}</p>
           <time datetime={event.timestamp} class="text-xs text-muted-foreground">{new Date(event.timestamp).toLocaleTimeString('en-GB')}</time>

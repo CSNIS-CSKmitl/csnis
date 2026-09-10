@@ -1,19 +1,27 @@
 <script lang="ts">
-  import { Network, Router, ShieldCheck, Wifi, Server, Cable, Move } from 'lucide-svelte';
+  import { Network, Router, ShieldCheck, Wifi, Server, Cable, Move, Link, Scaling } from 'lucide-svelte';
   import type { NetworkDevice } from '$lib/monitoring/types';
 
   let {
     device,
     selected,
     editMode = false,
+    mapWidth = 600,
+    mapHeight = 480,
     onselect,
-    ondragstart
+    ondragstart,
+    onstartconnect,
+    onresizestart
   }: {
     device: NetworkDevice;
     selected: boolean;
     editMode?: boolean;
+    mapWidth?: number;
+    mapHeight?: number;
     onselect: (id: string) => void;
     ondragstart?: (e: MouseEvent, id: string) => void;
+    onstartconnect?: (e: MouseEvent, id: string) => void;
+    onresizestart?: (e: MouseEvent, id: string) => void;
   } = $props();
 
   const icons = { router: Router, firewall: ShieldCheck, core: Network, wireless: Wifi, server: Server, switch: Cable };
@@ -21,7 +29,24 @@
 
   function handleMouseDown(e: MouseEvent) {
     if (editMode && ondragstart) {
+      e.preventDefault();
       ondragstart(e, device.id);
+    }
+  }
+
+  function handleConnectMouseDown(e: MouseEvent) {
+    e.stopPropagation();
+    e.preventDefault();
+    if (editMode && onstartconnect) {
+      onstartconnect(e, device.id);
+    }
+  }
+
+  function handleResizeMouseDown(e: MouseEvent) {
+    e.stopPropagation();
+    e.preventDefault();
+    if (editMode && onresizestart) {
+      onresizestart(e, device.id);
     }
   }
 </script>
@@ -31,18 +56,39 @@
   class:core={device.kind==='core'}
   class:selected
   class:editable={editMode}
-  class:warning={device.status==='warning'}
   class:offline={device.status==='offline'}
-  style:left={`${device.x/6}%`}
-  style:top={`${device.y/4.8}%`}
+  style:left={`${(device.x / mapWidth) * 100}%`}
+  style:top={`${(device.y / mapHeight) * 100}%`}
+  style:width={`${device.width || 158}px`}
+  style:min-height={`${device.height || 100}px`}
   onclick={() => onselect(device.id)}
   onmousedown={handleMouseDown}
   aria-pressed={selected}
   aria-label={`${device.name}: ${device.status}. Show device details`}
 >
   {#if editMode}
-    <span class="drag-badge" title="Drag to reposition node">
+    <span class="drag-badge" title="ลากเพื่อย้ายตำแหน่ง">
       <Move size={12} />
+    </span>
+    <!-- Cable Port Connector Handle -->
+    <span
+      class="connect-badge"
+      onmousedown={handleConnectMouseDown}
+      title="ลากเส้นจากจุดนี้ไปหาอุปกรณ์อื่นเพื่อเชื่อมสาย Link"
+      role="button"
+      tabindex="-1"
+    >
+      <Link size={12} />
+    </span>
+    <!-- Resize Node Handle -->
+    <span
+      class="resize-badge"
+      onmousedown={handleResizeMouseDown}
+      title="ลากเพื่อปรับขนาดย่อ/ขยายกล่องอุปกรณ์"
+      role="button"
+      tabindex="-1"
+    >
+      <Scaling size={12} />
     </span>
   {/if}
 
@@ -51,7 +97,7 @@
     <i></i>
   </span>
   <strong>{device.name}</strong>
-  <small>{device.status==='online'?'Online':device.status==='warning'?'Warning':'Offline'}</small>
+  <small>{device.status==='online'?'Online':'Offline'}</small>
 </button>
 
 <style>
@@ -91,6 +137,44 @@
     align-items: center;
     justify-content: center;
   }
+  .resize-badge {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    background: #f1f5f9;
+    color: #64748b;
+    padding: 3px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: se-resize;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .resize-badge:hover {
+    background: #2563eb;
+    color: white;
+  }
+  .connect-badge {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2563eb;
+    color: white;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: crosshair;
+    box-shadow: 0 2px 5px rgba(37, 99, 235, 0.4);
+    transition: transform 0.15s, background-color 0.15s;
+  }
+  .connect-badge:hover {
+    background: #1d4ed8;
+    transform: translateX(-50%) scale(1.25);
+  }
   .node strong {
     font-size: .75rem;
     font-weight: 600;
@@ -125,15 +209,6 @@
     outline: 3px solid #93c5fd;
     outline-offset: 4px;
   }
-  .warning {
-    border-color: #eab308;
-  }
-  .warning small {
-    color: #a16207;
-  }
-  .warning i {
-    background: #d97706;
-  }
   .offline {
     border-color: #ef4444;
   }
@@ -144,4 +219,5 @@
     background: #dc2626;
   }
 </style>
+
 

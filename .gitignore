@@ -4,3 +4,7 @@ build/
 .env
 .env.*
 !.env.example
+
+# Local server topology runtime storage
+data/topology.json
+data/

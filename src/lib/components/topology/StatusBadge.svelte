@@ -5,9 +5,9 @@
   } = $props();
 </script>
 
-<span class="status" class:warning={status==='warning'} class:offline={status==='offline'}>
+<span class="status" class:offline={status==='offline'}>
   <span class="dot"></span>
-  {status==='online'?'Online':status==='warning'?'Warning':'Offline'}</span>
+  {status==='online'?'Online':'Offline'}</span>
 
 <style>
   .status {
@@ -28,11 +28,6 @@
     height: 6px;
     background: currentColor;
     border-radius: 50%;
-  }
-  .warning {
-    color: #a16207;
-    background: #fffbeb;
-    border-color: #fef3c7;
   }
   .offline {
     color: #b91c1c;

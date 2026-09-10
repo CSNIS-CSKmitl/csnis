@@ -18,14 +18,14 @@
 
   function handleSubmit(e: Event) {
     e.preventDefault();
-    if (!name.trim() || !address.trim()) return;
+    if (!name.trim()) return;
 
     const id = name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Math.floor(Math.random() * 1000);
     onadd({
       id,
       name: name.trim(),
       kind,
-      address: address.trim(),
+      address: address.trim() || 'Unnumbered (L2 Bridge)',
       location: location.trim() || 'Local Network',
       x: Math.floor(Math.random() * 250) + 150,
       y: Math.floor(Math.random() * 200) + 150,
@@ -87,14 +87,13 @@
           </div>
 
           <div>
-            <label for="dev-address" class="label">IP Address / Host</label>
+            <label for="dev-address" class="label">IP Address / Host (ไม่ระบุได้สำหรับ L2 Bridge)</label>
             <input
               id="dev-address"
               type="text"
               bind:value={address}
-              placeholder="192.168.1.x"
+              placeholder="192.168.1.x หรือ เว้นว่างไว้"
               class="input-field"
-              required
             />
           </div>
         </div>
@@ -113,11 +112,13 @@
         <div class="form-group">
           <label for="dev-connect" class="label">เชื่อมต่อเข้ากับ Node (Link Source)</label>
           <select id="dev-connect" bind:value={connectedTo} class="input-field">
-            <option value="opnsense">OPNsense Firewall</option>
+            <option value="opnsense">OPNsense Firewall VM</option>
+            <option value="vmbr0">Linux Bridge 0 (vmbr0 / eno0)</option>
+            <option value="vmbr1">Linux Bridge 1 (vmbr1 / eno3)</option>
             <option value="dlink">D-Link Smart Switch</option>
-            <option value="linux-bridge">Linux Bridge</option>
-            <option value="servers">Server Cluster</option>
+            <option value="servers">Server VMs & Apps</option>
           </select>
+
         </div>
 
         <div class="modal-actions">

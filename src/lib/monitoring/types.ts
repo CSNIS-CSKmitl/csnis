@@ -1,4 +1,5 @@
-export type DeviceStatus = 'online' | 'warning' | 'offline';
+export type DeviceStatus = 'online' | 'offline';
+
 export type DeviceKind = 'router' | 'firewall' | 'core' | 'wireless' | 'switch' | 'server';
 export interface NetworkDevice {
     id: string;
@@ -11,6 +12,8 @@ export interface NetworkDevice {
     utilization: number;
     x: number;
     y: number;
+    width?: number;
+    height?: number;
 }
 export interface NetworkLink {
     id: string;
