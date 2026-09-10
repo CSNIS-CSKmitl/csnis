@@ -9,18 +9,18 @@ export const services: Service[] = [
         id: 'init-d',
         name: 'init.d',
         icon: 'terminal',
-        repository: 'https://github.com/CSNIS-CSKmitl/init.d',
+        repository: 'https://init-d.cskmitl.com/',
     },
     {
         id: 'printer-server',
         name: 'Printer-server',
         icon: 'printer',
-        repository: 'https://github.com/CSNIS-CSKmitl/Printer-server',
+        repository: 'https://printer.cskmitl.com/',
     },
     {
         id: 'booking',
         name: 'Booking',
         icon: 'calendar',
-        repository: 'https://github.com/CSNIS-CSKmitl/Booking',
+        repository: 'https://booking.cskmitl.com/',
     },
 ];

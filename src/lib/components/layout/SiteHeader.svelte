@@ -1,34 +1,33 @@
 <script lang="ts">
-  import { page } from '$app/state';
-  import { afterNavigate } from '$app/navigation';
-  import { Network, Menu, X, ArrowUpRight } from 'lucide-svelte';
-  import { Button } from '$lib/components/ui/button';
+  import { page } from "$app/state";
+  import { afterNavigate } from "$app/navigation";
+  import { Network, Menu, X, ArrowUpRight } from "lucide-svelte";
+  import { Button } from "$lib/components/ui/button";
   let menuOpen = $state(false);
   const links = [
-      { href: '/', label: 'Home' },
-      { href: '/services/', label: 'Services' },
-      { href: '/infrastructure/', label: 'Infrastructure' },
-      { href: '/topology/', label: 'Live Topology' },
-      { href: '/contact/', label: 'Contact' },
+    { href: "/", label: "Home" },
+    { href: "/services/", label: "Services" },
+    { href: "/infrastructure/", label: "Infrastructure" },
+    { href: "/topology/", label: "Live Topology" },
+    { href: "/contact/", label: "Contact" },
   ];
-  afterNavigate(() => { menuOpen = false; });
+  afterNavigate(() => {
+    menuOpen = false;
+  });
 </script>
 
 <a class="skip-link" href="#main">Skip to content</a>
 
 <header>
-
   <div class="container nav-inner">
-
     <a href="/" class="brand" aria-label="CSNIS Home">
-
       <span class="brand-icon">
         <Network size={24} />
       </span>
 
       <span>
-
-        <strong>CSNIS
+        <strong
+          >CSNIS
           <span class="brand-dot">.</span>
         </strong>
 
@@ -37,38 +36,29 @@
     </a>
 
     <nav class:open={menuOpen} id="main-nav" aria-label="Main navigation">
-
       {#each links as link (link.href)}
-
-        <a href={link.href} aria-current={page.url.pathname === link.href ? 'page' : undefined}>
+        <a
+          href={link.href}
+          aria-current={page.url.pathname === link.href ? "page" : undefined}
+        >
           {link.label}
         </a>
-
       {/each}
     </nav>
-
-    <div class="support">
-
-      <Button href="/contact/" class="bg-slate-900 hover:bg-slate-800">
-        IT Support
-        <ArrowUpRight size={15} />
-      </Button>
-    </div>
 
     <Button
       variant="ghost"
       class="mobile-menu"
-      aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
+      aria-label={menuOpen ? "Close navigation" : "Open navigation"}
       aria-expanded={menuOpen}
       aria-controls="main-nav"
-      onclick={() => menuOpen = !menuOpen}
+      onclick={() => (menuOpen = !menuOpen)}
     >
-
       {#if menuOpen}
         <X />
-        {:else}
+      {:else}
         <Menu />
-        {/if}
+      {/if}
     </Button>
   </div>
 </header>
@@ -105,14 +95,14 @@
   }
   .brand strong {
     font-size: 1.3rem;
-    letter-spacing: -.04em;
+    letter-spacing: -0.04em;
   }
   .brand-dot {
     color: #1d4ed8;
   }
   .brand small {
     display: block;
-    font-size: .7rem;
+    font-size: 0.7rem;
     color: #64748b;
     line-height: 1.5;
   }
@@ -122,12 +112,13 @@
     gap: 26px;
   }
   nav a {
-    font-size: .875rem;
+    font-size: 0.875rem;
     color: #64748b;
     padding-block: 31px;
     border-bottom: 2px solid transparent;
   }
-  nav a:hover, nav a[aria-current] {
+  nav a:hover,
+  nav a[aria-current] {
     color: #1d4ed8;
   }
   nav a[aria-current] {

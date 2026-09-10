@@ -5,13 +5,14 @@ import { createPoller } from './poller';
 import { createApiProvider } from './api';
 test('warning recovery propagates consistently through devices and links', () => {
     const warning = createMockSnapshot(0), recovered = createMockSnapshot(3);
-    assert.equal(warning.devices.find(d => d.id === 'distribution')?.status, 'warning');
-    assert.equal(warning.links.find(l => l.target === 'distribution')?.status, 'warning');
-    assert.equal(recovered.devices.find(d => d.id === 'distribution')?.status, 'online');
-    assert.equal(recovered.links.find(l => l.target === 'distribution')?.status, 'online');
+    assert.equal(warning.devices.find(d => d.id === 'linux-bridge')?.status, 'warning');
+    assert.equal(warning.links.find(l => l.target === 'linux-bridge')?.status, 'warning');
+    assert.equal(recovered.devices.find(d => d.id === 'linux-bridge')?.status, 'online');
+    assert.equal(recovered.links.find(l => l.target === 'linux-bridge')?.status, 'online');
     assert.equal(linkStatus('warning', 'offline'), 'offline');
     assert.equal(new Set(warning.devices.map(d => d.id)).size, warning.devices.length);
 });
+
 test('poller prevents overlap, supports manual refresh while paused, and aborts on disposal', async () => {
     let calls = 0, updates = 0, signal: AbortSignal | undefined;
     let complete: (data: ReturnType<typeof createMockSnapshot>) => void = () => { };
