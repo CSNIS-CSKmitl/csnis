@@ -6,6 +6,8 @@
     Plus,
     Save,
     RotateCcw,
+    Download,
+    Upload,
   } from "lucide-svelte";
   import { Button } from "$lib/components/ui/button";
   import { Switch } from "$lib/components/ui/switch";
@@ -21,6 +23,8 @@
     onOpenAddDevice,
     onSaveLayout,
     onResetLayout,
+    onExportTopology,
+    onImportTopology,
   }: {
     autoRefresh: boolean;
     busy: boolean;
@@ -32,7 +36,19 @@
     onOpenAddDevice?: () => void;
     onSaveLayout?: () => void;
     onResetLayout?: () => void;
+    onExportTopology?: () => void;
+    onImportTopology?: (file: File) => void;
   } = $props();
+
+  let fileInputEl: HTMLInputElement | undefined = $state();
+
+  function handleFileChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (input.files && input.files[0] && onImportTopology) {
+      onImportTopology(input.files[0]);
+      input.value = "";
+    }
+  }
 </script>
 
 <div
@@ -83,7 +99,7 @@
     {/if}
   </div>
 
-  <!-- Primary Action Controls: Add Device, Save Topology, Reset, Auto Refresh -->
+  <!-- Primary Action Controls: Add Device, Save Topology, Reset, Export/Import, Auto Refresh -->
   <div
     class="flex flex-wrap items-center justify-between gap-2.5 sm:justify-end"
   >
@@ -95,7 +111,38 @@
           onclick={onOpenAddDevice}
         >
           <Plus size={15} />
-          Add Device (เพิ่มอุปกรณ์)
+          Add Device
+        </Button>
+      {/if}
+
+      {#if onExportTopology}
+        <Button
+          variant="outline"
+          class="h-9 gap-1.5 text-xs text-slate-700 border-slate-300 hover:bg-slate-100"
+          onclick={onExportTopology}
+          title="Export topology configuration to JSON file"
+        >
+          <Download size={14} class="text-slate-600" />
+          Export JSON
+        </Button>
+      {/if}
+
+      {#if onImportTopology}
+        <input
+          type="file"
+          accept=".json"
+          bind:this={fileInputEl}
+          onchange={handleFileChange}
+          class="hidden"
+        />
+        <Button
+          variant="outline"
+          class="h-9 gap-1.5 text-xs text-slate-700 border-slate-300 hover:bg-slate-100"
+          onclick={() => fileInputEl?.click()}
+          title="Import topology configuration from JSON file"
+        >
+          <Upload size={14} class="text-slate-600" />
+          Import JSON
         </Button>
       {/if}
 
@@ -108,7 +155,7 @@
           onclick={() => onSaveLayout?.()}
         >
           <Save size={14} />
-          {hasUnsavedChanges ? "Save Topology (คลิกเพื่อบันทึก!)" : "Save Topology (บันทึกผัง)"}
+          {hasUnsavedChanges ? "Save Topology (คลิกเพื่อบันทึก!)" : "Save Topology"}
         </Button>
       {/if}
 

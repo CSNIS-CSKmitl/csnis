@@ -127,6 +127,49 @@
     }
   }
 
+  function handleExportTopology() {
+    if (!snapshot) return;
+    const exportData = {
+      devices: snapshot.devices,
+      links: snapshot.links
+    };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `csnis-topology-${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  }
+
+  function handleImportTopology(file: File) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const parsed = JSON.parse(content);
+        if (!Array.isArray(parsed.devices) || !Array.isArray(parsed.links)) {
+          alert('รูปแบบไฟล์ JSON ไม่ถูกต้อง: จำเป็นต้องมีโครงสร้าง "devices" และ "links"');
+          return;
+        }
+        if (confirm(`คุณต้องการนำเข้าไฟล์ผังเครือข่ายที่มี ${parsed.devices.length} อุปกรณ์ และ ${parsed.links.length} การเชื่อมต่อ ใช่หรือไม่?`)) {
+          snapshot = {
+            devices: parsed.devices,
+            links: parsed.links,
+            events: snapshot?.events || [],
+            timestamp: new Date().toISOString(),
+            source: 'api'
+          };
+          hasUnsavedChanges = true;
+          alert('นำเข้าผังเครือข่ายสำเร็จ! กรุณากด "Save Topology" เพื่อบันทึกลงเซิร์ฟเวอร์');
+        }
+      } catch {
+        alert('ไม่สามารถอ่านไฟล์ JSON ได้ กรุณาตรวจสอบความถูกต้องของไฟล์');
+      }
+    };
+    reader.readAsText(file);
+  }
+
   function handleUpdateDevice(updated: NetworkDevice) {
     if (!snapshot) return;
     const idx = snapshot.devices.findIndex((d) => d.id === updated.id);
@@ -374,6 +417,8 @@
     onOpenAddDevice={() => (addModalOpen = true)}
     onSaveLayout={handleSaveLayout}
     onResetLayout={handleResetLayout}
+    onExportTopology={handleExportTopology}
+    onImportTopology={handleImportTopology}
   />
 
   {#if error}
