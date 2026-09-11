@@ -5,6 +5,6 @@ build/
 .env.*
 !.env.example
 
-# Local server topology runtime storage
-data/topology.json
-data/
+# Local server runtime storage in project root only
+/data/
+
