@@ -9,13 +9,13 @@
     <a href="/" class="flex items-center gap-3 text-slate-900">
       <Network size={22} />
 
-      <strong class="text-xl tracking-tight"
-        >CSNIS
-        <span class="text-blue-700">.</span>
+      <strong class="text-xs tracking-tight"
+        >CS Network and Infrastructure System
+        <!-- <span class="text-blue-700">.</span> -->
       </strong>
     </a>
 
-    <p>Network Infrastructure · Connect. Secure. Scale.</p>
+    <!-- <p>Network Infrastructure · Connect. Secure. Scale.</p> -->
 
     <span>© {new Date().getFullYear()} Techasit Vanitpattarakul</span>
   </div>

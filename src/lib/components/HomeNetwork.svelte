@@ -1,53 +1,74 @@
 <script lang="ts">
-  import { Network, ShieldCheck, Globe, Wifi, Server, ArrowUpRight } from 'lucide-svelte';
+  import {
+    Network,
+    ShieldCheck,
+    Globe,
+    Wifi,
+    Server,
+    ArrowUpRight,
+  } from "lucide-svelte";
 </script>
 
 <div class="network panel">
-
   <div class="heading">
     <span>
-      <Network size={16}/>
-      Our connected infrastructure</span>
+      <Network size={16} />
+      Our connected infrastructure</span
+    >
     <span class="sample">ILLUSTRATIVE</span>
   </div>
 
   <div class="diagram">
-
     <svg viewBox="0 0 500 340" preserveAspectRatio="none" aria-hidden="true">
       <defs>
-        <pattern id="home-grid" width="24" height="24" patternUnits="userSpaceOnUse">
-          <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#e8edf4" stroke-width="1"/>
+        <pattern
+          id="home-grid"
+          width="24"
+          height="24"
+          patternUnits="userSpaceOnUse"
+        >
+          <path
+            d="M 24 0 L 0 0 0 24"
+            fill="none"
+            stroke="#e8edf4"
+            stroke-width="1"
+          />
         </pattern>
       </defs>
-      <rect width="500" height="340" fill="url(#home-grid)"/>
-      <path d="M110 80 H250 V170 M390 80 H250 M110 260 H250 V170 M390 260 H250" fill="none" stroke="#a9bce0" stroke-width="1.5"/>
+      <rect width="500" height="340" fill="url(#home-grid)" />
+      <path
+        d="M110 80 H250 V170 M390 80 H250 M110 260 H250 V170 M390 260 H250"
+        fill="none"
+        stroke="#a9bce0"
+        stroke-width="1.5"
+      />
     </svg>
 
     <div class="node wan">
-      <Globe size={24}/>
+      <Globe size={24} />
       <span>WAN Router</span>
     </div>
     <div class="node firewall">
-      <ShieldCheck size={24}/>
+      <ShieldCheck size={24} />
       <span>Firewall</span>
     </div>
     <div class="node core">
-      <Network size={34}/>
+      <Network size={34} />
       <span>Core Switch</span>
     </div>
     <div class="node wireless">
-      <Wifi size={24}/>
+      <Wifi size={24} />
       <span>Wireless LAN</span>
     </div>
     <div class="node server">
-      <Server size={24}/>
+      <Server size={24} />
       <span>Server Network</span>
     </div>
   </div>
 
   <a href="/topology/" class="network-bottom">
     <span>Explore the network topology</span>
-    <ArrowUpRight size={18}/>
+    <ArrowUpRight size={18} />
   </a>
 </div>
 
@@ -62,17 +83,17 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    font-size: .75rem;
+    font-size: 0.75rem;
     font-weight: 600;
   }
-  .heading>span:first-child {
+  .heading > span:first-child {
     display: flex;
     align-items: center;
     gap: 8px;
   }
   .sample {
-    font-size: .625rem;
-    letter-spacing: .1em;
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
     color: #64748b;
   }
   .diagram {
@@ -89,7 +110,7 @@
     width: 106px;
     height: 76px;
     position: absolute;
-    transform: translate(-50%,-50%);
+    transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -101,7 +122,7 @@
     color: #475569;
   }
   .node span {
-    font-size: .7rem;
+    font-size: 0.7rem;
     font-weight: 500;
     white-space: nowrap;
   }
@@ -134,11 +155,11 @@
     display: flex;
     justify-content: space-between;
     padding: 17px 24px;
-    font-size: .75rem;
+    font-size: 0.75rem;
     color: #1d4ed8;
     font-weight: 600;
   }
-  @media(max-width:400px) {
+  @media (max-width: 400px) {
     .heading {
       padding-inline: 14px;
     }

@@ -56,7 +56,7 @@
 >
   <!-- Live System Badge & Lock / Unlock Status -->
   <div class="flex flex-wrap items-center gap-3">
-    <div
+    <!-- <div
       class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700"
     >
       <span class="relative flex h-2 w-2">
@@ -67,7 +67,7 @@
         ></span>
       </span>
       <span>Live System API (OPNsense / D-Link / Linux Bridge)</span>
-    </div>
+    </div> -->
 
     <!-- Admin Edit Lock / Unlock Button -->
     <button
@@ -89,7 +89,9 @@
     </button>
 
     {#if hasUnsavedChanges}
-      <span class="inline-flex items-center gap-1 text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full animate-pulse">
+      <span
+        class="inline-flex items-center gap-1 text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full animate-pulse"
+      >
         ● มีรายการแก้ไขที่ยังไม่ได้บันทึก
       </span>
     {:else}
@@ -155,7 +157,9 @@
           onclick={() => onSaveLayout?.()}
         >
           <Save size={14} />
-          {hasUnsavedChanges ? "Save Topology (คลิกเพื่อบันทึก!)" : "Save Topology"}
+          {hasUnsavedChanges
+            ? "Save Topology (คลิกเพื่อบันทึก!)"
+            : "Save Topology"}
         </Button>
       {/if}
 

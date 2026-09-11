@@ -83,17 +83,17 @@
     if (!data) return;
     isSaving = true;
     try {
-      await fetch('/api/monitoring', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/monitoring", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: 'save_topology',
+          action: "save_topology",
           devices: data.devices,
-          links: data.links
-        })
+          links: data.links,
+        }),
       });
     } catch (err) {
-      console.error('Error saving topology to server:', err);
+      console.error("Error saving topology to server:", err);
     } finally {
       isSaving = false;
     }
@@ -104,25 +104,29 @@
     await saveToServer(snapshot);
     hasUnsavedChanges = false;
     await poller?.refresh();
-    alert('บันทึกแผนผังเครือข่ายลงบนเซิร์ฟเวอร์ (Server Storage) สำเร็จ!');
+    alert("บันทึกแผนผังเครือข่ายลงบนเซิร์ฟเวอร์ (Server Storage) สำเร็จ!");
   }
 
   async function handleResetLayout() {
-    if (confirm('คุณต้องการรีเซ็ตแผนผังเครือข่ายกลับเป็นค่าเริ่มต้นบนเซิร์ฟเวอร์ใช่หรือไม่?')) {
+    if (
+      confirm(
+        "คุณต้องการรีเซ็ตแผนผังเครือข่ายกลับเป็นค่าเริ่มต้นบนเซิร์ฟเวอร์ใช่หรือไม่?",
+      )
+    ) {
       try {
         isSaving = true;
-        await fetch('/api/monitoring', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'reset_topology' })
+        await fetch("/api/monitoring", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "reset_topology" }),
         });
         isSaving = false;
         hasUnsavedChanges = false;
         await poller?.refresh();
-        alert('รีเซ็ตแผนผังบนเซิร์ฟเวอร์เรียบร้อยแล้ว!');
+        alert("รีเซ็ตแผนผังบนเซิร์ฟเวอร์เรียบร้อยแล้ว!");
       } catch {
         isSaving = false;
-        alert('เกิดข้อผิดพลาดในการรีเซ็ตผังบนเซิร์ฟเวอร์');
+        alert("เกิดข้อผิดพลาดในการรีเซ็ตผังบนเซิร์ฟเวอร์");
       }
     }
   }
@@ -131,12 +135,17 @@
     if (!snapshot) return;
     const exportData = {
       devices: snapshot.devices,
-      links: snapshot.links
+      links: snapshot.links,
     };
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
-    const downloadAnchor = document.createElement('a');
+    const dataStr =
+      "data:text/json;charset=utf-8," +
+      encodeURIComponent(JSON.stringify(exportData, null, 2));
+    const downloadAnchor = document.createElement("a");
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `csnis-topology-${new Date().toISOString().slice(0, 10)}.json`);
+    downloadAnchor.setAttribute(
+      "download",
+      `csnis-topology-${new Date().toISOString().slice(0, 10)}.json`,
+    );
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -149,22 +158,30 @@
         const content = e.target?.result as string;
         const parsed = JSON.parse(content);
         if (!Array.isArray(parsed.devices) || !Array.isArray(parsed.links)) {
-          alert('รูปแบบไฟล์ JSON ไม่ถูกต้อง: จำเป็นต้องมีโครงสร้าง "devices" และ "links"');
+          alert(
+            'รูปแบบไฟล์ JSON ไม่ถูกต้อง: จำเป็นต้องมีโครงสร้าง "devices" และ "links"',
+          );
           return;
         }
-        if (confirm(`คุณต้องการนำเข้าไฟล์ผังเครือข่ายที่มี ${parsed.devices.length} อุปกรณ์ และ ${parsed.links.length} การเชื่อมต่อ ใช่หรือไม่?`)) {
+        if (
+          confirm(
+            `คุณต้องการนำเข้าไฟล์ผังเครือข่ายที่มี ${parsed.devices.length} อุปกรณ์ และ ${parsed.links.length} การเชื่อมต่อ ใช่หรือไม่?`,
+          )
+        ) {
           snapshot = {
             devices: parsed.devices,
             links: parsed.links,
             events: snapshot?.events || [],
             timestamp: new Date().toISOString(),
-            source: 'api'
+            source: "api",
           };
           hasUnsavedChanges = true;
-          alert('นำเข้าผังเครือข่ายสำเร็จ! กรุณากด "Save Topology" เพื่อบันทึกลงเซิร์ฟเวอร์');
+          alert(
+            'นำเข้าผังเครือข่ายสำเร็จ! กรุณากด "Save Topology" เพื่อบันทึกลงเซิร์ฟเวอร์',
+          );
         }
       } catch {
-        alert('ไม่สามารถอ่านไฟล์ JSON ได้ กรุณาตรวจสอบความถูกต้องของไฟล์');
+        alert("ไม่สามารถอ่านไฟล์ JSON ได้ กรุณาตรวจสอบความถูกต้องของไฟล์");
       }
     };
     reader.readAsText(file);
@@ -192,13 +209,13 @@
       links: newLinks,
     };
     if (selected === id) {
-      selected = newDevices[0]?.id || '';
+      selected = newDevices[0]?.id || "";
     }
     hasUnsavedChanges = true;
   }
 
   function handleAddCustomDevice(
-    newDev: Omit<NetworkDevice, 'status' | 'latency' | 'utilization'> & {
+    newDev: Omit<NetworkDevice, "status" | "latency" | "utilization"> & {
       connectedTo?: string;
     },
   ) {
@@ -206,7 +223,7 @@
 
     const deviceToAdd: NetworkDevice = {
       ...newDev,
-      status: 'online',
+      status: "online",
       latency: 1,
       utilization: 20,
     };
@@ -219,8 +236,8 @@
         id: `link-${Date.now()}`,
         source: newDev.connectedTo,
         target: newDev.id,
-        capacity: '1 Gbps',
-        status: 'online',
+        capacity: "1 Gbps",
+        status: "online",
       };
       newLinks.push(newLink);
     }
@@ -265,8 +282,8 @@
       id: `link-${Date.now()}`,
       source: sourceId,
       target: targetId,
-      capacity: '1 Gbps',
-      status: 'online',
+      capacity: "1 Gbps",
+      status: "online",
     };
 
     snapshot = {
@@ -285,17 +302,17 @@
     hasUnsavedChanges = true;
   }
 
-  function initPoller(mode: 'mock' | 'api') {
+  function initPoller(mode: "mock" | "api") {
     poller?.dispose();
     const provider =
-      mode === 'api'
-        ? createApiProvider(() => '/api/monitoring')
+      mode === "api"
+        ? createApiProvider(() => "/api/monitoring")
         : createMockProvider();
     poller = createPoller(provider, {
       snapshot: (data) => {
         if (isSaving || editMode || hasUnsavedChanges) return;
         snapshot = data;
-        error = '';
+        error = "";
       },
       error: (message) => {
         if (!isSaving && !editMode && !hasUnsavedChanges) error = message;
@@ -315,7 +332,11 @@
   async function toggleAdmin() {
     if (editMode) {
       if (hasUnsavedChanges) {
-        if (confirm('คุณมีรายการแก้ไขแผนผังที่ยังไม่ได้บันทึก ต้องการบันทึกข้อมูลก่อนออกจาก Admin Mode ใช่หรือไม่?')) {
+        if (
+          confirm(
+            "คุณมีรายการแก้ไขแผนผังที่ยังไม่ได้บันทึก ต้องการบันทึกข้อมูลก่อนออกจาก Admin Mode ใช่หรือไม่?",
+          )
+        ) {
           await handleSaveLayout();
         }
       }
@@ -503,7 +524,7 @@
             No devices are available from the monitoring source.
           </p>
         {/if}
-
+        <!-- 
         <div class="map-footer">
           <div class="flex flex-wrap gap-2">
             <StatusBadge status="online" />
@@ -514,7 +535,7 @@
               "en-GB",
             )}
           </time>
-        </div>
+        </div> -->
       </section>
 
       <aside class="space-y-5">
@@ -527,15 +548,7 @@
         <RecentEvents events={snapshot.events} />
       </aside>
     </div>
-
-    <div class="mt-5 flex items-start gap-2 text-xs muted">
-      <Info size={15} class="shrink-0 mt-0.5" />
-      <p>
-        ข้อมูลและ IP แสดงผลจาก {providerMode === "api"
-          ? "Live System Monitoring API (OPNsense / D-Link / Linux Bridge Backend Probes)"
-          : "Demo Simulated Data"}
-      </p>
-    </div>
+    <!--     -->
 
     <ConnectionsTable {snapshot} />
   {:else}
@@ -548,7 +561,13 @@
 </div>
 
 <!-- Security Modals -->
-<AdminPinModal bind:open={pinModalOpen} onsuccess={() => { editMode = true; poller?.setPaused(true); }} />
+<AdminPinModal
+  bind:open={pinModalOpen}
+  onsuccess={() => {
+    editMode = true;
+    poller?.setPaused(true);
+  }}
+/>
 <AddDeviceModal bind:open={addModalOpen} onadd={handleAddCustomDevice} />
 
 <style>
