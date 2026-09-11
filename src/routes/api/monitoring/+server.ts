@@ -10,51 +10,13 @@ import fs from 'fs';
 import path from 'path';
 
 const execAsync = promisify(exec);
-const TOPOLOGY_FILE = path.join(process.cwd(), 'data', 'topology.json');
 
-interface ServerTopologyData {
-    devices: NetworkDevice[];
-    links: NetworkLink[];
-    mapConfig?: {
-        mapWidth?: number;
-        mapHeight?: number;
-        isSizeLocked?: boolean;
-    };
-}
-
-function loadServerTopology(): ServerTopologyData {
-    try {
-        if (fs.existsSync(TOPOLOGY_FILE)) {
-            const raw = fs.readFileSync(TOPOLOGY_FILE, 'utf-8');
-            return JSON.parse(raw);
-        }
-    } catch (err) {
-        console.error('Error reading server topology file:', err);
-    }
-    return {
-        devices: initialDevices,
-        links: [
-            { id: 'link-0', source: 'wan', target: 'vmbr0', capacity: '1 Gbps', status: 'online' },
-            { id: 'link-1', source: 'vmbr0', target: 'opnsense', capacity: '10 Gbps', status: 'online' },
-            { id: 'link-2', source: 'opnsense', target: 'vmbr1', capacity: '10 Gbps', status: 'online' },
-            { id: 'link-3', source: 'vmbr1', target: 'dlink', capacity: '10 Gbps', status: 'online' },
-            { id: 'link-4', source: 'dlink', target: 'wlc', capacity: '10 Gbps', status: 'online' },
-            { id: 'link-5', source: 'vmbr1', target: 'servers', capacity: '10 Gbps', status: 'online' }
-        ]
-    };
-}
-
-function saveServerTopology(data: ServerTopologyData) {
-    try {
-        const dir = path.dirname(TOPOLOGY_FILE);
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-        fs.writeFileSync(TOPOLOGY_FILE, JSON.stringify(data, null, 2), 'utf-8');
-    } catch (err) {
-        console.error('Error writing server topology file:', err);
-    }
-}
+import {
+    loadServerTopology,
+    saveServerTopology,
+    defaultTopology,
+    type ServerTopologyData
+} from '$lib/server/dataStore';
 
 // Genuine ICMP / HTTP Probe helper function (No Mock Data)
 async function probeTarget(address: string): Promise<{ status: 'online' | 'offline'; latency: number }> {
@@ -319,19 +281,7 @@ export const POST: RequestHandler = async ({ request }) => {
         }
 
         if (body.action === 'reset_topology') {
-            const defaultData: ServerTopologyData = {
-                devices: initialDevices,
-                links: [
-                    { id: 'link-0', source: 'wan', target: 'vmbr0', capacity: '1 Gbps', status: 'online' },
-                    { id: 'link-1', source: 'vmbr0', target: 'opnsense', capacity: '10 Gbps', status: 'online' },
-                    { id: 'link-2', source: 'opnsense', target: 'vmbr1', capacity: '10 Gbps', status: 'online' },
-                    { id: 'link-3', source: 'vmbr1', target: 'dlink', capacity: '10 Gbps', status: 'online' },
-                    { id: 'link-4', source: 'dlink', target: 'wlc', capacity: '10 Gbps', status: 'online' },
-                    { id: 'link-5', source: 'vmbr1', target: 'servers', capacity: '10 Gbps', status: 'online' }
-                ],
-                mapConfig: { mapWidth: 600, mapHeight: 480, isSizeLocked: true }
-            };
-            saveServerTopology(defaultData);
+            saveServerTopology(defaultTopology);
             return json({ success: true, message: 'Topology reset to default initial state.' });
         }
 

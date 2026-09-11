@@ -1,35 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { defaultOrgChartData, type OrgChartData } from '$lib/data/orgChart';
-import fs from 'fs';
-import path from 'path';
-
-const ORG_CHART_FILE = path.join(process.cwd(), 'data', 'org-chart.json');
-
-function loadServerOrgChart(): OrgChartData {
-    try {
-        if (fs.existsSync(ORG_CHART_FILE)) {
-            const raw = fs.readFileSync(ORG_CHART_FILE, 'utf-8');
-            return JSON.parse(raw);
-        }
-    } catch (err) {
-        console.error('Error reading server org-chart file:', err);
-    }
-    return defaultOrgChartData;
-}
-
-function saveServerOrgChart(data: OrgChartData) {
-    try {
-        const dir = path.dirname(ORG_CHART_FILE);
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-        fs.writeFileSync(ORG_CHART_FILE, JSON.stringify(data, null, 2), 'utf-8');
-    } catch (err) {
-        console.error('Error writing server org-chart file:', err);
-        throw err;
-    }
-}
+import { loadServerOrgChart, saveServerOrgChart } from '$lib/server/dataStore';
 
 export const GET: RequestHandler = async () => {
     const data = loadServerOrgChart();
