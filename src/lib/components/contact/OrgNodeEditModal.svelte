@@ -14,6 +14,7 @@
     Camera,
     Trash2,
     Upload,
+    Link,
   } from "lucide-svelte";
   import type { OrgNode } from "$lib/data/orgChart";
 
@@ -49,10 +50,21 @@
   let skillsText = $state("");
   let selectedParentId = $state("");
   let isDraggingPhoto = $state(false);
+  let isUploading = $state(false);
+  let uploadMessage = $state("");
+  let uploadIsSuccess = $state(false);
+  let imageUrlInput = $state("");
+  let showUrlInput = $state(false);
 
   // Populate form when node changes or modal opens
   $effect(() => {
     if (open) {
+      isUploading = false;
+      uploadMessage = "";
+      uploadIsSuccess = false;
+      imageUrlInput = "";
+      showUrlInput = false;
+
       if (node) {
         name = node.name || "";
         role = node.role || "";
@@ -88,52 +100,61 @@
     }
   });
 
-  // Client-side image resize and compress to WebP base64
-  function processImageFile(file: File) {
-    if (!file.type.startsWith("image/")) {
-      alert("กรุณาเลือกไฟล์รูปภาพ (JPG, PNG, WebP ฯลฯ)");
+  // Direct server upload
+  async function uploadImageFile(file: File) {
+    if (!file.type.startsWith("image/") && !file.name.match(/\.(jpe?g|png|webp|gif|svg)$/i)) {
+      alert("กรุณาเลือกไฟล์รูปภาพ (JPG, PNG, WebP, GIF, SVG)");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const maxDim = 320;
-        let width = img.width;
-        let height = img.height;
+    if (file.size > 10 * 1024 * 1024) {
+      alert("ขนาดไฟล์ภาพใหญ่เกิน 10MB กรุณาเลือกไฟล์ที่มีขนาดเล็กลง");
+      return;
+    }
 
-        if (width > height) {
-          if (width > maxDim) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          }
-        } else {
-          if (height > maxDim) {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-        }
+    isUploading = true;
+    uploadMessage = "กำลังอัปโหลดและบันทึกรูปภาพลงเซิร์ฟเวอร์...";
+    uploadIsSuccess = false;
 
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          avatar = canvas.toDataURL("image/webp", 0.85);
-        }
-      };
-      img.src = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+    // Set immediate local preview
+    try {
+      avatar = URL.createObjectURL(file);
+    } catch {
+      /* ignore */
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.url) {
+        avatar = data.url;
+        uploadIsSuccess = true;
+        uploadMessage = `✓ บันทึกรูปภาพลงเซิร์ฟเวอร์เรียบร้อย (${data.filename})`;
+      } else {
+        throw new Error(data.message || "การอัปโหลดไฟล์ล้มเหลว");
+      }
+    } catch (err) {
+      console.error("Upload failed:", err);
+      uploadIsSuccess = false;
+      uploadMessage = "เกิดข้อผิดพลาดในการอัปโหลด: " + (err as Error).message;
+      alert("ไม่สามารถอัปโหลดรูปภาพได้: " + (err as Error).message);
+    } finally {
+      isUploading = false;
+    }
   }
 
   function handleFileInput(e: Event) {
     const target = e.target as HTMLInputElement;
     const file = target.files?.[0];
     if (file) {
-      processImageFile(file);
+      uploadImageFile(file);
     }
     target.value = "";
   }
@@ -143,12 +164,23 @@
     isDraggingPhoto = false;
     const file = e.dataTransfer?.files?.[0];
     if (file) {
-      processImageFile(file);
+      uploadImageFile(file);
     }
   }
 
   function removeAvatar() {
     avatar = undefined;
+    imageUrlInput = "";
+    uploadMessage = "";
+  }
+
+  function applyImageUrl() {
+    const trimmed = imageUrlInput.trim();
+    if (trimmed) {
+      avatar = trimmed;
+      uploadIsSuccess = true;
+      uploadMessage = "✓ ใช้งานรูปภาพจากลิงก์ URL เรียบร้อย";
+    }
   }
 
   function handleSubmit(e: SubmitEvent) {
@@ -204,7 +236,7 @@
       <!-- Header -->
       <div class="flex items-center justify-between border-b border-slate-100 pb-4">
         <div class="flex items-center gap-2.5">
-          <div class="grid size-9 place-items-center rounded-xl bg-blue-100 text-blue-700">
+          <div class="grid size-9 place-items-center rounded-xl bg-slate-100 text-slate-800">
             {#if node}
               <Edit3 size={18} />
             {:else}
@@ -237,21 +269,21 @@
         <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <Camera size={14} class="text-blue-600" />
+              <Camera size={14} class="text-slate-600" />
               รูปถ่ายสมาชิก (Profile Picture)
             </span>
             <span class="text-[11px] text-slate-500">
-              ขนาดภาพจะถูกย่อและบีบอัดเก็บใน JSON อัตโนมัติ
+              บันทึกลงเซิร์ฟเวอร์จริง (Server Storage: /data/uploads)
             </span>
           </div>
 
           <div class="flex flex-col sm:flex-row items-center gap-4">
-            <!-- Avatar Preview Box -->
+            <!-- Avatar Preview Box / Dropzone -->
             <div
               role="region"
               aria-label="Dropzone รูปโปรไฟล์"
               class="relative size-20 shrink-0 rounded-2xl border-2 border-dashed {isDraggingPhoto
-                ? 'border-blue-500 bg-blue-50'
+                ? 'border-slate-800 bg-slate-100'
                 : 'border-slate-300 bg-white'} grid place-items-center overflow-hidden shadow-xs"
               ondragover={(e) => {
                 e.preventDefault();
@@ -260,7 +292,12 @@
               ondragleave={() => (isDraggingPhoto = false)}
               ondrop={handleDrop}
             >
-              {#if avatar}
+              {#if isUploading}
+                <div class="flex flex-col items-center justify-center p-1 text-center">
+                  <div class="size-5 animate-spin rounded-full border-2 border-slate-900 border-t-transparent"></div>
+                  <span class="text-[8px] mt-1 text-slate-600 font-medium">กำลังบันทึก...</span>
+                </div>
+              {:else if avatar}
                 <img
                   src={avatar}
                   alt="Avatar Preview"
@@ -275,42 +312,78 @@
             </div>
 
             <!-- Upload Controls -->
-            <div class="flex-1 flex flex-wrap items-center gap-2">
-              <label
-                class="inline-flex items-center gap-1.5 rounded-xl bg-white border border-slate-300 px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors cursor-pointer"
-              >
-                <Upload size={14} class="text-blue-600" />
-                <span>{avatar ? "เปลี่ยนรูปภาพ" : "อัปโหลดรูปภาพ"}</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  class="hidden"
-                  onchange={handleFileInput}
-                />
-              </label>
+            <div class="flex-1 space-y-2 w-full">
+              <div class="flex flex-wrap items-center gap-2">
+                <label
+                  class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 transition-colors cursor-pointer {isUploading ? 'opacity-60 pointer-events-none' : ''}"
+                >
+                  <Upload size={14} />
+                  <span>{isUploading ? "กำลังอัปโหลด..." : avatar ? "เปลี่ยนรูปภาพ (จากเครื่อง)" : "อัปโหลดรูปภาพ (จากเครื่อง)"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    disabled={isUploading}
+                    onchange={handleFileInput}
+                  />
+                </label>
 
-              {#if avatar}
                 <button
                   type="button"
-                  class="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50/70 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors cursor-pointer"
-                  onclick={removeAvatar}
+                  class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                  onclick={() => (showUrlInput = !showUrlInput)}
                 >
-                  <Trash2 size={13} />
-                  <span>ลบรูปภาพ</span>
+                  <Link size={13} />
+                  <span>{showUrlInput ? "ซ่อนช่อง URL" : "ใส่ลิงก์รูปภาพ (URL)"}</span>
                 </button>
+
+                {#if avatar}
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
+                    onclick={removeAvatar}
+                  >
+                    <Trash2 size={13} />
+                    <span>ลบรูปภาพ</span>
+                  </button>
+                {/if}
+              </div>
+
+              {#if showUrlInput}
+                <div class="flex items-center gap-1.5 pt-1">
+                  <input
+                    type="url"
+                    bind:value={imageUrlInput}
+                    placeholder="https://... หรือ /images/avatar.jpg"
+                    class="flex-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-slate-800 focus:outline-hidden"
+                  />
+                  <button
+                    type="button"
+                    class="rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-700 transition-colors cursor-pointer"
+                    onclick={applyImageUrl}
+                  >
+                    ใช้รูปนี้
+                  </button>
+                </div>
               {/if}
 
-              <p class="text-[11px] text-slate-500 w-full mt-1">
-                รองรับไฟล์ภาพ JPG, PNG, WebP หรือลากไฟล์มาวางในช่องได้ทันที
-              </p>
+              {#if uploadMessage}
+                <p class="text-[11px] font-medium {uploadIsSuccess ? 'text-slate-800 font-semibold' : 'text-slate-500'}">
+                  {uploadMessage}
+                </p>
+              {:else}
+                <p class="text-[11px] text-slate-500">
+                  รองรับไฟล์ภาพ JPG, PNG, WebP (สูงสุด 10MB) หรือลากไฟล์มาวางในช่องได้ทันที
+                </p>
+              {/if}
             </div>
           </div>
         </div>
 
         <!-- Status Switch: Is Retired? -->
-        <div class="flex items-center justify-between rounded-xl border border-amber-200/80 bg-amber-50/50 p-3.5">
+        <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3.5">
           <div class="flex items-center gap-2.5">
-            <Award size={20} class="text-amber-600" />
+            <Award size={20} class="text-slate-700" />
             <div>
               <span class="text-xs font-bold text-slate-900 block">
                 สมาชิกที่เกษียณแล้ว / ทำเนียบเกียรติยศ (Retired / Emeritus)
@@ -327,13 +400,13 @@
               bind:checked={isRetired}
               class="sr-only peer"
             />
-            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-900"></div>
           </label>
         </div>
 
         <!-- Retired Specific Info -->
         {#if isRetired}
-          <div class="grid gap-3 sm:grid-cols-2 rounded-xl border border-amber-200 bg-amber-50/30 p-3.5">
+          <div class="grid gap-3 sm:grid-cols-2 rounded-xl border border-slate-200 bg-slate-50/50 p-3.5">
             <div>
               <label for="ret-year" class="block text-xs font-semibold text-slate-700 mb-1">
                 ปีที่เกษียณ / วาระการทำงาน
@@ -343,7 +416,7 @@
                 type="text"
                 bind:value={retiredYear}
                 placeholder="เช่น 2566 (2023) หรือ 2018 - 2024"
-                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:border-amber-500 focus:outline-hidden"
+                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:border-slate-800 focus:outline-hidden"
               />
             </div>
 
@@ -356,7 +429,7 @@
                 type="text"
                 bind:value={honoraryTitle}
                 placeholder="เช่น ผู้ร่วมก่อตั้งโครงสร้างพื้นฐาน CSNIS"
-                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:border-amber-500 focus:outline-hidden"
+                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:border-slate-800 focus:outline-hidden"
               />
             </div>
           </div>
@@ -374,7 +447,7 @@
               bind:value={name}
               placeholder="เช่น นายวิทยา เครือข่ายมั่นคง"
               required
-              class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-hidden"
+              class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-slate-800 focus:bg-white focus:outline-hidden"
             />
           </div>
 
@@ -388,7 +461,7 @@
               bind:value={role}
               placeholder="เช่น Network Operations Lead"
               required
-              class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-hidden"
+              class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-slate-800 focus:bg-white focus:outline-hidden"
             />
           </div>
         </div>
@@ -404,7 +477,7 @@
               type="text"
               bind:value={department}
               placeholder="เช่น Network & Security Division"
-              class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-hidden"
+              class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-slate-800 focus:bg-white focus:outline-hidden"
             />
           </div>
 
@@ -416,7 +489,7 @@
               <select
                 id="member-category"
                 bind:value={category}
-                class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-hidden"
+                class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-slate-800 focus:bg-white focus:outline-hidden"
               >
                 <option value="executive">Executive Board (ฝ่ายบริหาร)</option>
                 <option value="network">Network & Security (เครือข่าย & ความปลอดภัย)</option>
@@ -436,7 +509,7 @@
             <select
               id="parent-select"
               bind:value={selectedParentId}
-              class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-hidden"
+              class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-slate-800 focus:bg-white focus:outline-hidden"
             >
               {#each availableParents as parent}
                 <option value={parent.id}>{parent.name} ({parent.role})</option>
@@ -456,7 +529,7 @@
               type="text"
               bind:value={badge}
               placeholder="เช่น Core Network, Cloud & VM, Staff"
-              class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-hidden"
+              class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-slate-800 focus:bg-white focus:outline-hidden"
             />
           </div>
 
@@ -469,7 +542,7 @@
               type="text"
               bind:value={room}
               placeholder="เช่น พระจอมเกล้า 713"
-              class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-hidden"
+              class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-slate-800 focus:bg-white focus:outline-hidden"
             />
           </div>
         </div>
@@ -484,7 +557,7 @@
             type="email"
             bind:value={email}
             placeholder="เช่น contact@cskmitl.com"
-            class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-hidden"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-slate-800 focus:bg-white focus:outline-hidden"
           />
         </div>
 
@@ -498,7 +571,7 @@
             rows="3"
             bind:value={responsibilitiesText}
             placeholder="ดูแลระบบเซิร์ฟเวอร์หลักของภาควิชา&#10;ควบคุมนโยบายการสำรองข้อมูล (Backup)&#10;ตรวจสอบความปลอดภัยของเครือข่าย"
-            class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-hidden"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-slate-800 focus:bg-white focus:outline-hidden"
           ></textarea>
         </div>
 
@@ -512,7 +585,7 @@
             type="text"
             bind:value={skillsText}
             placeholder="เช่น Proxmox, Linux, WireGuard, VLAN, OPNsense"
-            class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-hidden"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 focus:border-slate-800 focus:bg-white focus:outline-hidden"
           />
         </div>
 
@@ -528,7 +601,7 @@
 
           <button
             type="submit"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 transition-colors cursor-pointer"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <Save size={14} />
             <span>{node ? "บันทึกการแก้ไข" : "เพิ่มสมาชิก"}</span>

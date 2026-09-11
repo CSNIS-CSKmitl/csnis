@@ -162,7 +162,9 @@
       if (res.ok && result.success) {
         hasUnsavedChanges = false;
         saveToLocalStorage({ chart, retiredMembers });
-        alert("บันทึกผังโครงสร้างการบริหารลงบนเซิร์ฟเวอร์ (Server JSON) เรียบร้อยแล้ว!");
+        alert(
+          "บันทึกผังโครงสร้างการบริหารลงบนเซิร์ฟเวอร์ (Server JSON) เรียบร้อยแล้ว!",
+        );
       } else {
         alert(result.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
       }
@@ -284,7 +286,8 @@
         showPinModal = false;
         pin = "";
       } else {
-        pinError = data.message || "Admin PIN ไม่ถูกต้อง (รหัสเริ่มต้นคือ 1234)";
+        pinError =
+          data.message || "Admin PIN ไม่ถูกต้อง (รหัสเริ่มต้นคือ 1234)";
       }
     } catch {
       pinError = "ไม่สามารถเชื่อมต่อเพื่อตรวจสอบ PIN ได้";
@@ -308,7 +311,7 @@
     showEditModal = true;
   }
 
-  function handleDeleteNode(targetId: string, isRetired = false) {
+  async function handleDeleteNode(targetId: string, isRetired = false) {
     if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบตำแหน่ง/สมาชิกนี้?")) {
       if (isRetired) {
         retiredMembers = retiredMembers.filter((m) => m.id !== targetId);
@@ -319,12 +322,31 @@
         }
         chart = deleteNodeFromTree(chart, targetId);
       }
-      hasUnsavedChanges = true;
       saveToLocalStorage({ chart, retiredMembers });
+
+      // Auto-persist to server
+      try {
+        const res = await fetch("/api/org-chart", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "save_org_chart",
+            chart,
+            retiredMembers,
+          }),
+        });
+        if (res.ok) {
+          hasUnsavedChanges = false;
+        } else {
+          hasUnsavedChanges = true;
+        }
+      } catch {
+        hasUnsavedChanges = true;
+      }
     }
   }
 
-  function handleSaveNode(updated: OrgNode, parentId?: string) {
+  async function handleSaveNode(updated: OrgNode, parentId?: string) {
     if (updated.isRetired) {
       const existingIdx = retiredMembers.findIndex((m) => m.id === updated.id);
       if (existingIdx >= 0) {
@@ -344,8 +366,27 @@
         chart = addNodeToTree(chart, targetParent, updated);
       }
     }
-    hasUnsavedChanges = true;
     saveToLocalStorage({ chart, retiredMembers });
+
+    // Auto-persist directly to server JSON
+    try {
+      const res = await fetch("/api/org-chart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "save_org_chart",
+          chart,
+          retiredMembers,
+        }),
+      });
+      if (res.ok) {
+        hasUnsavedChanges = false;
+      } else {
+        hasUnsavedChanges = true;
+      }
+    } catch {
+      hasUnsavedChanges = true;
+    }
   }
 
   function toggleCollapse(id: string, e: MouseEvent) {
@@ -381,7 +422,7 @@
     }
   }
 
-  // Helper for department styling
+  // Helper for department styling (Monochrome Slate Theme)
   const categoryConfig: Record<
     string,
     {
@@ -396,48 +437,48 @@
   > = {
     executive: {
       icon: ShieldCheck,
-      border: "border-blue-500/70 hover:border-blue-600",
-      bg: "bg-gradient-to-b from-blue-50/70 to-white",
-      badgeBg: "bg-blue-100 text-blue-800 border-blue-200",
-      badgeText: "text-blue-800",
-      accentBg: "bg-blue-600 text-white",
-      accentText: "text-blue-700",
+      border: "border-slate-300 hover:border-slate-500",
+      bg: "bg-white",
+      badgeBg: "bg-slate-100 text-slate-800 border-slate-200",
+      badgeText: "text-slate-800",
+      accentBg: "bg-slate-900 text-white",
+      accentText: "text-slate-700",
     },
     network: {
       icon: Network,
-      border: "border-emerald-500/70 hover:border-emerald-600",
-      bg: "bg-gradient-to-b from-emerald-50/70 to-white",
-      badgeBg: "bg-emerald-100 text-emerald-800 border-emerald-200",
-      badgeText: "text-emerald-800",
-      accentBg: "bg-emerald-600 text-white",
-      accentText: "text-emerald-700",
+      border: "border-slate-300 hover:border-slate-500",
+      bg: "bg-white",
+      badgeBg: "bg-slate-100 text-slate-800 border-slate-200",
+      badgeText: "text-slate-800",
+      accentBg: "bg-slate-800 text-white",
+      accentText: "text-slate-700",
     },
     systems: {
       icon: Server,
-      border: "border-indigo-500/70 hover:border-indigo-600",
-      bg: "bg-gradient-to-b from-indigo-50/70 to-white",
-      badgeBg: "bg-indigo-100 text-indigo-800 border-indigo-200",
-      badgeText: "text-indigo-800",
-      accentBg: "bg-indigo-600 text-white",
-      accentText: "text-indigo-700",
+      border: "border-slate-300 hover:border-slate-500",
+      bg: "bg-white",
+      badgeBg: "bg-slate-100 text-slate-800 border-slate-200",
+      badgeText: "text-slate-800",
+      accentBg: "bg-slate-800 text-white",
+      accentText: "text-slate-700",
     },
     services: {
       icon: Layers,
-      border: "border-amber-500/70 hover:border-amber-600",
-      bg: "bg-gradient-to-b from-amber-50/70 to-white",
-      badgeBg: "bg-amber-100 text-amber-800 border-amber-200",
-      badgeText: "text-amber-800",
-      accentBg: "bg-amber-600 text-white",
-      accentText: "text-amber-700",
+      border: "border-slate-300 hover:border-slate-500",
+      bg: "bg-white",
+      badgeBg: "bg-slate-100 text-slate-800 border-slate-200",
+      badgeText: "text-slate-800",
+      accentBg: "bg-slate-800 text-white",
+      accentText: "text-slate-700",
     },
     retired: {
       icon: Award,
-      border: "border-amber-400/80 hover:border-amber-500",
-      bg: "bg-gradient-to-b from-amber-50/80 to-white",
-      badgeBg: "bg-amber-100 text-amber-900 border-amber-300",
-      badgeText: "text-amber-900",
-      accentBg: "bg-amber-600 text-white",
-      accentText: "text-amber-800",
+      border: "border-slate-300 hover:border-slate-500",
+      bg: "bg-white",
+      badgeBg: "bg-slate-100 text-slate-800 border-slate-200",
+      badgeText: "text-slate-800",
+      accentBg: "bg-slate-700 text-white",
+      accentText: "text-slate-700",
     },
   };
 
@@ -468,19 +509,28 @@
 
 <svelte:window onkeydown={handleKeyDown} />
 
-<section class="management-tree-section mb-14" aria-label="CSNIS Management Tree">
+<section
+  class="management-tree-section mb-14"
+  aria-label="CSNIS Management Tree"
+>
   <!-- Top Header with Admin Edit Controls -->
-  <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <div
+    class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+  >
     <div>
-      <div class="eyebrow flex items-center gap-1.5" style="margin-bottom: 6px;">
+      <div
+        class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5"
+      >
         <GitFork size={15} />
         Management Structure
       </div>
-      <h2 class="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
+      <h2
+        class="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5"
+      >
         <span>ผังโครงสร้างการบริหาร CSNIS</span>
         {#if hasUnsavedChanges}
           <span
-            class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse"
+            class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-300"
           >
             ● มีการแก้ไขที่ยังไม่บันทึก
           </span>
@@ -505,12 +555,14 @@
           <span>แก้ไขผังบริหาร</span>
         </button>
       {:else}
-        <div class="inline-flex items-center gap-1.5 rounded-xl bg-blue-50 border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700">
-          <Unlock size={14} class="text-blue-600" />
+        <div
+          class="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-800"
+        >
+          <Unlock size={14} class="text-slate-700" />
           <span>Admin Edit Mode</span>
           <button
             type="button"
-            class="ml-1 text-slate-400 hover:text-slate-700"
+            class="ml-1 text-slate-400 hover:text-slate-700 cursor-pointer"
             onclick={() => (isEditMode = false)}
             title="ออกจากโหมดแก้ไข"
           >
@@ -520,12 +572,14 @@
       {/if}
 
       <!-- View Switcher -->
-      <div class="inline-flex rounded-xl border border-slate-200 bg-slate-100/80 p-1">
+      <div
+        class="inline-flex rounded-xl border border-slate-200 bg-slate-100/80 p-1"
+      >
         <button
           type="button"
           class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer {viewMode ===
           'tree'
-            ? 'bg-white text-blue-600 shadow-xs'
+            ? 'bg-white text-slate-900 shadow-xs font-bold'
             : 'text-slate-600 hover:text-slate-900'}"
           onclick={() => (viewMode = "tree")}
         >
@@ -537,7 +591,7 @@
           type="button"
           class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer {viewMode ===
           'grid'
-            ? 'bg-white text-blue-600 shadow-xs'
+            ? 'bg-white text-slate-900 shadow-xs font-bold'
             : 'text-slate-600 hover:text-slate-900'}"
           onclick={() => (viewMode = "grid")}
         >
@@ -549,8 +603,8 @@
           type="button"
           class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer {viewMode ===
           'retired'
-            ? 'bg-amber-600 text-white shadow-xs'
-            : 'text-amber-800 hover:text-amber-900'}"
+            ? 'bg-white text-slate-900 shadow-xs font-bold'
+            : 'text-slate-600 hover:text-slate-900'}"
           onclick={() => (viewMode = "retired")}
           title="ดูทำเนียบสมาชิกเกษียณอายุและอาจารย์อาวุโส"
         >
@@ -564,17 +618,19 @@
   <!-- Admin Action Toolbar (Visible when in Edit Mode) -->
   {#if isEditMode}
     <div
-      class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 border-blue-200 bg-blue-50/50 p-4 shadow-sm animate-in fade-in duration-200"
+      class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 shadow-xs animate-in fade-in duration-200"
     >
       <div class="flex items-center gap-2">
-        <div class="grid size-8 place-items-center rounded-lg bg-blue-600 text-white shadow-2xs">
+        <div
+          class="grid size-8 place-items-center rounded-lg bg-slate-900 text-white shadow-2xs"
+        >
           <Edit3 size={16} />
         </div>
         <div>
-          <h4 class="text-xs font-bold text-blue-950">
+          <h4 class="text-xs font-bold text-slate-900">
             โหมดแก้ไขโครงสร้างองค์กร (Admin Edit Active)
           </h4>
-          <p class="text-[11px] text-blue-700">
+          <p class="text-[11px] text-slate-600">
             คุณสามารถเพิ่ม/แก้ไข/ลบสมาชิก และบันทึกลงไฟล์ JSON เซิร์ฟเวอร์ได้โดยตรง
           </p>
         </div>
@@ -584,7 +640,7 @@
         <!-- Add Active Member Button -->
         <button
           type="button"
-          class="inline-flex items-center gap-1.5 rounded-xl bg-white border border-blue-300 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-50 transition-colors shadow-2xs cursor-pointer"
+          class="inline-flex items-center gap-1.5 rounded-xl bg-white border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
           onclick={() => openAddModal(false)}
         >
           <Plus size={14} />
@@ -594,7 +650,7 @@
         <!-- Add Retired Member Button -->
         <button
           type="button"
-          class="inline-flex items-center gap-1.5 rounded-xl bg-amber-50 border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-100 transition-colors shadow-2xs cursor-pointer"
+          class="inline-flex items-center gap-1.5 rounded-xl bg-white border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
           onclick={() => openAddModal(true)}
         >
           <Award size={14} />
@@ -604,7 +660,7 @@
         <!-- Save to Server Button -->
         <button
           type="button"
-          class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+          class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 transition-all shadow-sm cursor-pointer disabled:opacity-50"
           onclick={handleSaveServer}
           disabled={isSaving}
         >
@@ -644,7 +700,7 @@
         <!-- Reset Default -->
         <button
           type="button"
-          class="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-red-50/70 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors cursor-pointer"
+          class="inline-flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
           onclick={handleResetServer}
           title="รีเซ็ตผังกลับเป็นค่าเริ่มต้น"
         >
@@ -669,12 +725,12 @@
         type="text"
         bind:value={searchQuery}
         placeholder="ค้นหาตำแหน่ง, ชื่อฝ่าย, หรือหน้าที่ความรับผิดชอบ..."
-        class="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pr-4 pl-10 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-hidden"
+        class="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pr-4 pl-10 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:outline-hidden"
       />
       {#if searchQuery}
         <button
           type="button"
-          class="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          class="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
           onclick={() => (searchQuery = "")}
           aria-label="ล้างคำค้นหา"
         >
@@ -689,8 +745,8 @@
         type="button"
         class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer {selectedCategory ===
         'all'
-          ? 'bg-slate-900 text-white'
-          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}"
+          ? 'bg-slate-900 text-white font-semibold shadow-xs'
+          : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'}"
         onclick={() => (selectedCategory = "all")}
       >
         ทุกฝ่าย ({allDisplayNodes.length})
@@ -700,8 +756,8 @@
         type="button"
         class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer {selectedCategory ===
         'executive'
-          ? 'bg-blue-600 text-white'
-          : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'}"
+          ? 'bg-slate-900 text-white font-semibold shadow-xs'
+          : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'}"
         onclick={() => (selectedCategory = "executive")}
       >
         ฝ่ายบริหาร
@@ -711,8 +767,8 @@
         type="button"
         class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer {selectedCategory ===
         'network'
-          ? 'bg-emerald-600 text-white'
-          : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'}"
+          ? 'bg-slate-900 text-white font-semibold shadow-xs'
+          : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'}"
         onclick={() => (selectedCategory = "network")}
       >
         เครือข่าย & ความปลอดภัย
@@ -722,8 +778,8 @@
         type="button"
         class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer {selectedCategory ===
         'systems'
-          ? 'bg-indigo-600 text-white'
-          : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200'}"
+          ? 'bg-slate-900 text-white font-semibold shadow-xs'
+          : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'}"
         onclick={() => (selectedCategory = "systems")}
       >
         ระบบแม่ข่าย & คลาวด์
@@ -733,8 +789,8 @@
         type="button"
         class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer {selectedCategory ===
         'services'
-          ? 'bg-amber-600 text-white'
-          : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'}"
+          ? 'bg-slate-900 text-white font-semibold shadow-xs'
+          : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'}"
         onclick={() => (selectedCategory = "services")}
       >
         บริการ & แอปพลิเคชัน
@@ -744,8 +800,8 @@
         type="button"
         class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer {selectedCategory ===
         'retired'
-          ? 'bg-amber-700 text-white'
-          : 'bg-amber-100/70 text-amber-900 hover:bg-amber-200 border border-amber-300'}"
+          ? 'bg-slate-900 text-white font-semibold shadow-xs'
+          : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'}"
         onclick={() => (selectedCategory = "retired")}
       >
         สมาชิกเกษียณอายุ ({retiredMembers.length})
@@ -774,7 +830,9 @@
           <ZoomIn size={16} />
         </button>
 
-        <span class="px-1 text-[11px] font-mono font-medium text-slate-500 select-none">
+        <span
+          class="px-1 text-[11px] font-mono font-medium text-slate-500 select-none"
+        >
           {Math.round(zoomScale * 100)}%
         </span>
 
@@ -803,7 +861,7 @@
       <div
         class="absolute bottom-4 left-4 z-20 hidden items-center gap-1.5 text-xs text-slate-500 sm:flex"
       >
-        <Sparkles size={13} class="text-blue-600" />
+        <Sparkles size={13} class="text-slate-400" />
         <span>คลิกที่การ์ดเพื่อดูหน้าที่ความรับผิดชอบ และช่องทางติดต่อ</span>
       </div>
 
@@ -832,7 +890,7 @@
                   </span>
 
                   <span
-                    class="rounded-full bg-blue-600/10 px-2 py-0.5 text-[10px] font-bold text-blue-700 uppercase tracking-wide"
+                    class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 uppercase tracking-wide border border-slate-200"
                   >
                     {chart.badge}
                   </span>
@@ -844,7 +902,7 @@
                     <img
                       src={chart.avatar}
                       alt={chart.name}
-                      class="size-11 shrink-0 rounded-xl object-cover border-2 border-white shadow-sm ring-1 ring-blue-200"
+                      class="size-11 shrink-0 rounded-xl object-cover border-2 border-white shadow-sm ring-1 ring-slate-200"
                     />
                   {:else}
                     <div
@@ -854,22 +912,26 @@
                     </div>
                   {/if}
                   <div>
-                    <h3 class="text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                    <h3
+                      class="text-base font-bold text-slate-900 group-hover:text-slate-700 transition-colors"
+                    >
                       {chart.name}
                     </h3>
-                    <p class="text-xs font-semibold text-blue-700">
+                    <p class="text-xs font-medium text-slate-600">
                       {chart.role}
                     </p>
                   </div>
                 </div>
 
                 <!-- Location & Details preview -->
-                <div class="mt-3.5 flex items-center justify-between border-t border-slate-200/80 pt-2.5 text-xs text-slate-500">
+                <div
+                  class="mt-3.5 flex items-center justify-between border-t border-slate-200/80 pt-2.5 text-xs text-slate-500"
+                >
                   <span class="flex items-center gap-1 text-[11.5px]">
                     <MapPin size={12} class="text-slate-400" />
                     {chart.room}
                   </span>
-                  <span class="text-blue-600 font-medium group-hover:underline">
+                  <span class="text-slate-600 font-medium group-hover:text-slate-900 group-hover:underline">
                     ดูรายละเอียด →
                   </span>
                 </div>
@@ -877,10 +939,12 @@
 
               <!-- Edit Mode Controls on Root -->
               {#if isEditMode}
-                <div class="absolute -top-3 -right-3 z-30 flex items-center gap-1">
+                <div
+                  class="absolute -top-3 -right-3 z-30 flex items-center gap-1"
+                >
                   <button
                     type="button"
-                    class="grid size-7 place-items-center rounded-full bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors cursor-pointer"
+                    class="grid size-7 place-items-center rounded-full bg-slate-900 text-white shadow-md hover:bg-slate-800 transition-colors cursor-pointer"
                     onclick={(e) => {
                       e.stopPropagation();
                       openEditModal(chart);
@@ -891,7 +955,7 @@
                   </button>
                   <button
                     type="button"
-                    class="grid size-7 place-items-center rounded-full bg-emerald-600 text-white shadow-md hover:bg-emerald-700 transition-colors cursor-pointer"
+                    class="grid size-7 place-items-center rounded-full bg-slate-700 text-white shadow-md hover:bg-slate-800 transition-colors cursor-pointer"
                     onclick={(e) => {
                       e.stopPropagation();
                       openAddModal(false, chart.id);
@@ -958,7 +1022,9 @@
                             {division.badge}
                           </span>
 
-                          <span class="text-[10.5px] font-medium text-slate-500">
+                          <span
+                            class="text-[10.5px] font-medium text-slate-500"
+                          >
                             {division.children?.length || 0} ทีมย่อย
                           </span>
                         </div>
@@ -979,10 +1045,14 @@
                             </div>
                           {/if}
                           <div>
-                            <h4 class="text-sm font-bold text-slate-900 group-hover:{divCfg.accentText} transition-colors leading-snug">
+                            <h4
+                              class="text-sm font-bold text-slate-900 group-hover:text-slate-700 transition-colors leading-snug"
+                            >
                               {division.name}
                             </h4>
-                            <p class="text-[11px] font-semibold {divCfg.accentText} mt-0.5">
+                            <p
+                              class="text-[11px] font-medium text-slate-600 mt-0.5"
+                            >
                               {division.role}
                             </p>
                           </div>
@@ -990,10 +1060,12 @@
 
                         <!-- Quick Skill Chips -->
                         {#if division.skills}
-                          <div class="mt-2.5 flex flex-wrap gap-1 border-t border-slate-200/60 pt-2">
+                          <div
+                            class="mt-2.5 flex flex-wrap gap-1 border-t border-slate-200/60 pt-2"
+                          >
                             {#each division.skills.slice(0, 2) as skill}
                               <span
-                                class="rounded-md bg-white/80 border border-slate-200/80 px-1.5 py-0.5 text-[9.5px] text-slate-600 font-mono"
+                                class="rounded-md bg-slate-50 border border-slate-200/80 px-1.5 py-0.5 text-[9.5px] text-slate-600 font-mono"
                               >
                                 {skill}
                               </span>
@@ -1004,10 +1076,12 @@
 
                       <!-- Edit Mode Buttons on Division Card -->
                       {#if isEditMode}
-                        <div class="absolute -top-2 -right-2 z-30 flex items-center gap-1">
+                        <div
+                          class="absolute -top-2 -right-2 z-30 flex items-center gap-1"
+                        >
                           <button
                             type="button"
-                            class="grid size-6 place-items-center rounded-full bg-blue-600 text-white shadow-xs hover:bg-blue-700 cursor-pointer"
+                            class="grid size-6 place-items-center rounded-full bg-slate-900 text-white shadow-xs hover:bg-slate-800 cursor-pointer"
                             onclick={(e) => {
                               e.stopPropagation();
                               openEditModal(division);
@@ -1018,7 +1092,7 @@
                           </button>
                           <button
                             type="button"
-                            class="grid size-6 place-items-center rounded-full bg-emerald-600 text-white shadow-xs hover:bg-emerald-700 cursor-pointer"
+                            class="grid size-6 place-items-center rounded-full bg-slate-700 text-white shadow-xs hover:bg-slate-800 cursor-pointer"
                             onclick={(e) => {
                               e.stopPropagation();
                               openAddModal(false, division.id);
@@ -1029,7 +1103,7 @@
                           </button>
                           <button
                             type="button"
-                            class="grid size-6 place-items-center rounded-full bg-red-600 text-white shadow-xs hover:bg-red-700 cursor-pointer"
+                            class="grid size-6 place-items-center rounded-full bg-slate-600 text-white shadow-xs hover:bg-slate-800 cursor-pointer"
                             onclick={(e) => {
                               e.stopPropagation();
                               handleDeleteNode(division.id, false);
@@ -1048,7 +1122,9 @@
                         type="button"
                         class="mt-2 z-10 grid size-5 place-items-center rounded-full border border-slate-300 bg-white text-slate-600 shadow-2xs hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
                         onclick={(e) => toggleCollapse(division.id, e)}
-                        title={isDivCollapsed ? "แสดงวิศวกรย่อย" : "ซ่อนวิศวกรย่อย"}
+                        title={isDivCollapsed
+                          ? "แสดงวิศวกรย่อย"
+                          : "ซ่อนวิศวกรย่อย"}
                         aria-label="Toggle Division Children"
                       >
                         {#if isDivCollapsed}
@@ -1071,12 +1147,14 @@
                           <div class="relative group">
                             <button
                               type="button"
-                              class="relative flex w-[265px] flex-col rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-2xs transition-all duration-200 hover:border-blue-400 hover:shadow-md cursor-pointer"
+                              class="relative flex w-[265px] flex-col rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-2xs transition-all duration-200 hover:border-slate-400 hover:shadow-md cursor-pointer"
                               onclick={() => selectNode(specialist)}
                             >
-                              <div class="flex items-start justify-between gap-1">
+                              <div
+                                class="flex items-start justify-between gap-1"
+                              >
                                 <span
-                                  class="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9.5px] font-semibold {specCfg.badgeBg}"
+                                  class="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9.5px] font-medium {specCfg.badgeBg}"
                                 >
                                   {specialist.badge}
                                 </span>
@@ -1094,16 +1172,20 @@
                                   />
                                 {:else}
                                   <div
-                                    class="grid size-6 shrink-0 place-items-center rounded-md bg-slate-100 text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors"
+                                    class="grid size-6 shrink-0 place-items-center rounded-md bg-slate-100 text-slate-600 group-hover:bg-slate-200 group-hover:text-slate-900 transition-colors"
                                   >
                                     <SpecIcon size={13} />
                                   </div>
                                 {/if}
                                 <div>
-                                  <h5 class="text-xs font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors">
+                                  <h5
+                                    class="text-xs font-bold text-slate-900 leading-snug group-hover:text-slate-700 transition-colors"
+                                  >
                                     {specialist.name}
                                   </h5>
-                                  <p class="text-[10.5px] text-slate-500 leading-tight mt-0.5">
+                                  <p
+                                    class="text-[10.5px] text-slate-500 leading-tight mt-0.5"
+                                  >
                                     {specialist.role}
                                   </p>
                                 </div>
@@ -1112,10 +1194,12 @@
 
                             <!-- Edit Buttons on Specialist Card -->
                             {#if isEditMode}
-                              <div class="absolute -top-2 -right-2 z-30 flex items-center gap-1">
+                              <div
+                                class="absolute -top-2 -right-2 z-30 flex items-center gap-1"
+                              >
                                 <button
                                   type="button"
-                                  class="grid size-5 place-items-center rounded-full bg-blue-600 text-white shadow-xs hover:bg-blue-700 cursor-pointer"
+                                  class="grid size-5 place-items-center rounded-full bg-slate-900 text-white shadow-xs hover:bg-slate-800 cursor-pointer"
                                   onclick={(e) => {
                                     e.stopPropagation();
                                     openEditModal(specialist);
@@ -1126,7 +1210,7 @@
                                 </button>
                                 <button
                                   type="button"
-                                  class="grid size-5 place-items-center rounded-full bg-red-600 text-white shadow-xs hover:bg-red-700 cursor-pointer"
+                                  class="grid size-5 place-items-center rounded-full bg-slate-600 text-white shadow-xs hover:bg-slate-800 cursor-pointer"
                                   onclick={(e) => {
                                     e.stopPropagation();
                                     handleDeleteNode(specialist.id, false);
@@ -1150,9 +1234,9 @@
       </div>
     </div>
 
-  <!-- ======================================================== -->
-  <!-- 2. CARD / GRID VIEW -->
-  <!-- ======================================================== -->
+    <!-- ======================================================== -->
+    <!-- 2. CARD / GRID VIEW -->
+    <!-- ======================================================== -->
   {:else if viewMode === "grid"}
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {#each filteredNodes as node (node.id)}
@@ -1162,7 +1246,7 @@
         <div class="relative group">
           <button
             type="button"
-            class="panel relative flex w-full flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 text-left transition-all duration-300 hover:border-blue-400 hover:shadow-md cursor-pointer"
+            class="panel relative flex w-full flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 text-left transition-all duration-300 hover:border-slate-400 hover:shadow-md cursor-pointer"
             onclick={() => selectNode(node)}
           >
             <div>
@@ -1175,7 +1259,9 @@
                   {node.department}
                 </span>
 
-                <span class="text-[11px] font-semibold {node.isRetired ? 'text-amber-700 font-bold' : 'text-slate-400'}">
+                <span
+                  class="text-[11px] font-semibold text-slate-400"
+                >
                   {node.badge}
                 </span>
               </div>
@@ -1196,14 +1282,18 @@
                   </div>
                 {/if}
                 <div>
-                  <h3 class="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  <h3
+                    class="text-sm font-bold text-slate-900 group-hover:text-slate-700 transition-colors"
+                  >
                     {node.name}
                   </h3>
-                  <p class="text-xs font-semibold {cfg.accentText} mt-0.5">
+                  <p class="text-xs font-medium text-slate-600 mt-0.5">
                     {node.role}
                   </p>
                   {#if node.retiredYear}
-                    <span class="inline-flex items-center gap-1 text-[11px] text-amber-800 font-medium mt-1">
+                    <span
+                      class="inline-flex items-center gap-1 text-[11px] text-slate-500 font-medium mt-1"
+                    >
                       <Calendar size={11} /> เกษียณปี {node.retiredYear}
                     </span>
                   {/if}
@@ -1214,7 +1304,10 @@
               <div class="mt-3.5 space-y-1 border-t border-slate-100 pt-3">
                 {#each node.responsibilities.slice(0, 2) as resp}
                   <div class="flex items-start gap-2 text-xs text-slate-600">
-                    <CheckCircle2 size={13} class="text-emerald-500 shrink-0 mt-0.5" />
+                    <CheckCircle2
+                      size={13}
+                      class="text-slate-400 shrink-0 mt-0.5"
+                    />
                     <span class="line-clamp-1">{resp}</span>
                   </div>
                 {/each}
@@ -1222,13 +1315,15 @@
             </div>
 
             <!-- Bottom bar -->
-            <div class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
+            <div
+              class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500"
+            >
               <span class="flex items-center gap-1">
                 <MapPin size={12} class="text-slate-400" />
                 {node.room}
               </span>
 
-              <span class="font-medium text-blue-600 group-hover:underline">
+              <span class="font-medium text-slate-600 group-hover:text-slate-900 group-hover:underline">
                 ดูข้อมูลเพิ่มเติม →
               </span>
             </div>
@@ -1239,7 +1334,7 @@
             <div class="absolute top-3 right-3 z-30 flex items-center gap-1.5">
               <button
                 type="button"
-                class="grid size-7 place-items-center rounded-full bg-white border border-slate-300 text-blue-600 shadow-sm hover:bg-blue-50 cursor-pointer"
+                class="grid size-7 place-items-center rounded-full bg-white border border-slate-300 text-slate-700 shadow-sm hover:bg-slate-100 cursor-pointer"
                 onclick={(e) => {
                   e.stopPropagation();
                   openEditModal(node);
@@ -1251,7 +1346,7 @@
               {#if node.id !== chart.id}
                 <button
                   type="button"
-                  class="grid size-7 place-items-center rounded-full bg-white border border-slate-300 text-red-600 shadow-sm hover:bg-red-50 cursor-pointer"
+                  class="grid size-7 place-items-center rounded-full bg-white border border-slate-300 text-slate-600 shadow-sm hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
                   onclick={(e) => {
                     e.stopPropagation();
                     handleDeleteNode(node.id, Boolean(node.isRetired));
@@ -1267,28 +1362,32 @@
       {/each}
     </div>
 
-  <!-- ======================================================== -->
-  <!-- 3. RETIRED MEMBERS VIEW (ทำเนียบสมาชิกเกษียณอายุ) -->
-  <!-- ======================================================== -->
+    <!-- ======================================================== -->
+    <!-- 3. RETIRED MEMBERS VIEW (ทำเนียบสมาชิกเกษียณอายุ) -->
+    <!-- ======================================================== -->
   {:else if viewMode === "retired"}
     <div class="space-y-6">
       <!-- Section Banner -->
       <div
-        class="rounded-2xl border border-amber-200/90 bg-gradient-to-r from-amber-50/90 via-amber-50/50 to-white p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div class="flex items-start gap-3.5">
-          <div class="grid size-12 place-items-center rounded-2xl bg-amber-600 text-white shadow-md">
+          <div
+            class="grid size-12 place-items-center rounded-2xl bg-slate-900 text-white shadow-md"
+          >
             <Award size={24} />
           </div>
           <div>
-            <div class="eyebrow" style="color: #b45309; margin-bottom: 4px;">
+            <div class="eyebrow" style="color: #64748b; margin-bottom: 4px;">
               Honorary & Retired Members
             </div>
             <h3 class="text-xl font-bold text-slate-900">
               ทำเนียบสมาชิกเกษียณอายุและศิษย์เก่า CSNIS
             </h3>
             <p class="text-xs text-slate-600 mt-1 max-w-xl leading-relaxed">
-              เกียรติประวัติอาจารย์อาวุโส อดีตหัวหน้าโครงการ และผู้บุกเบิกโครงสร้างพื้นฐานเครือข่าย CSNIS ภาควิชาวิทยาการคอมพิวเตอร์ สจล.
+              เกียรติประวัติอาจารย์อาวุโส อดีตหัวหน้าโครงการ
+              และผู้บุกเบิกโครงสร้างพื้นฐานเครือข่าย CSNIS
+              ภาควิชาวิทยาการคอมพิวเตอร์ สจล.
             </p>
           </div>
         </div>
@@ -1296,7 +1395,7 @@
         {#if isEditMode}
           <button
             type="button"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-amber-700 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-800 transition-colors cursor-pointer self-start sm:self-auto"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors cursor-pointer self-start sm:self-auto"
             onclick={() => openAddModal(true)}
           >
             <Plus size={14} />
@@ -1311,21 +1410,23 @@
           <div class="relative group">
             <button
               type="button"
-              class="panel relative flex w-full flex-col justify-between rounded-2xl border border-amber-200/80 bg-[#FCFBF8] p-6 text-left transition-all duration-300 hover:border-amber-400 hover:shadow-lg cursor-pointer"
+              class="panel relative flex w-full flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 text-left transition-all duration-300 hover:border-slate-400 hover:shadow-md cursor-pointer"
               onclick={() => selectNode(ret)}
             >
               <div>
                 <!-- Top Badge & Tenure -->
                 <div class="flex items-center justify-between gap-2">
                   <span
-                    class="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-100 px-2.5 py-0.5 text-[10.5px] font-bold text-amber-900"
+                    class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-[10.5px] font-semibold text-slate-700"
                   >
-                    <Award size={12} class="text-amber-700" />
+                    <Award size={12} class="text-slate-600" />
                     {ret.badge}
                   </span>
 
                   {#if ret.retiredYear}
-                    <span class="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                    <span
+                      class="text-xs font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md"
+                    >
                       วาระ {ret.retiredYear}
                     </span>
                   {/if}
@@ -1337,20 +1438,22 @@
                     <img
                       src={ret.avatar}
                       alt={ret.name}
-                      class="size-12 shrink-0 rounded-xl object-cover border-2 border-amber-300 shadow-xs"
+                      class="size-12 shrink-0 rounded-xl object-cover border-2 border-white shadow-xs ring-1 ring-slate-200"
                     />
                   {:else}
                     <div
-                      class="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-600 text-white shadow-2xs"
+                      class="grid size-10 shrink-0 place-items-center rounded-xl bg-slate-800 text-white shadow-2xs"
                     >
                       <Award size={20} />
                     </div>
                   {/if}
                   <div>
-                    <h4 class="text-base font-bold text-slate-900 group-hover:text-amber-800 transition-colors">
+                    <h4
+                      class="text-base font-bold text-slate-900 group-hover:text-slate-700 transition-colors"
+                    >
                       {ret.name}
                     </h4>
-                    <p class="text-xs font-semibold text-amber-800 mt-0.5">
+                    <p class="text-xs font-medium text-slate-600 mt-0.5">
                       {ret.role}
                     </p>
                   </div>
@@ -1358,20 +1461,27 @@
 
                 <!-- Honorary Title -->
                 {#if ret.honoraryTitle}
-                  <div class="mt-3 rounded-lg bg-amber-100/60 border border-amber-200/80 px-3 py-1.5 text-xs text-amber-950 font-medium flex items-center gap-1.5">
-                    <Sparkles size={13} class="text-amber-700 shrink-0" />
+                  <div
+                    class="mt-3 rounded-lg bg-slate-50 border border-slate-200 px-3 py-1.5 text-xs text-slate-800 font-medium flex items-center gap-1.5"
+                  >
+                    <Sparkles size={13} class="text-slate-500 shrink-0" />
                     <span>{ret.honoraryTitle}</span>
                   </div>
                 {/if}
 
                 <!-- Legacy Contributions -->
-                <div class="mt-4 space-y-1.5 border-t border-amber-200/60 pt-3">
-                  <div class="text-[10.5px] font-bold uppercase tracking-wider text-amber-900/80">
+                <div class="mt-4 space-y-1.5 border-t border-slate-100 pt-3">
+                  <div
+                    class="text-[10.5px] font-bold uppercase tracking-wider text-slate-500"
+                  >
                     ผลงานและบทบาทสำคัญ:
                   </div>
                   {#each ret.responsibilities.slice(0, 2) as resp}
-                    <div class="flex items-start gap-2 text-xs text-slate-700">
-                      <CheckCircle2 size={13} class="text-amber-700 shrink-0 mt-0.5" />
+                    <div class="flex items-start gap-2 text-xs text-slate-600">
+                      <CheckCircle2
+                        size={13}
+                        class="text-slate-400 shrink-0 mt-0.5"
+                      />
                       <span class="line-clamp-2">{resp}</span>
                     </div>
                   {/each}
@@ -1379,13 +1489,17 @@
               </div>
 
               <!-- Bottom Bar -->
-              <div class="mt-5 flex items-center justify-between border-t border-amber-200/60 pt-3 text-xs text-amber-900/70">
+              <div
+                class="mt-5 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500"
+              >
                 <span class="flex items-center gap-1">
-                  <MapPin size={12} class="text-amber-600" />
+                  <MapPin size={12} class="text-slate-400" />
                   {ret.room}
                 </span>
 
-                <span class="font-semibold text-amber-800 group-hover:underline">
+                <span
+                  class="font-medium text-slate-700 group-hover:text-slate-900 group-hover:underline"
+                >
                   ดูเกียรติประวัติ →
                 </span>
               </div>
@@ -1393,10 +1507,12 @@
 
             <!-- Edit / Delete for Retired -->
             {#if isEditMode}
-              <div class="absolute top-4 right-4 z-30 flex items-center gap-1.5">
+              <div
+                class="absolute top-4 right-4 z-30 flex items-center gap-1.5"
+              >
                 <button
                   type="button"
-                  class="grid size-7 place-items-center rounded-full bg-white border border-amber-300 text-amber-800 shadow-sm hover:bg-amber-100 cursor-pointer"
+                  class="grid size-7 place-items-center rounded-full bg-white border border-slate-300 text-slate-700 shadow-sm hover:bg-slate-100 cursor-pointer"
                   onclick={(e) => {
                     e.stopPropagation();
                     openEditModal(ret);
@@ -1407,7 +1523,7 @@
                 </button>
                 <button
                   type="button"
-                  class="grid size-7 place-items-center rounded-full bg-white border border-red-300 text-red-600 shadow-sm hover:bg-red-50 cursor-pointer"
+                  class="grid size-7 place-items-center rounded-full bg-white border border-slate-300 text-slate-600 shadow-sm hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
                   onclick={(e) => {
                     e.stopPropagation();
                     handleDeleteNode(ret.id, true);
@@ -1438,9 +1554,13 @@
     <div
       class="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-200"
     >
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div
+        class="flex items-center justify-between border-b border-slate-100 pb-3"
+      >
         <div class="flex items-center gap-2">
-          <div class="grid size-8 place-items-center rounded-lg bg-blue-100 text-blue-700">
+          <div
+            class="grid size-8 place-items-center rounded-lg bg-slate-100 text-slate-800"
+          >
             <KeyRound size={18} />
           </div>
           <h3 id="pin-modal-title" class="text-sm font-bold text-slate-900">
@@ -1450,7 +1570,7 @@
 
         <button
           type="button"
-          class="text-slate-400 hover:text-slate-700"
+          class="text-slate-400 hover:text-slate-700 cursor-pointer"
           onclick={() => {
             showPinModal = false;
             pin = "";
@@ -1464,18 +1584,24 @@
 
       <form onsubmit={handleAuthenticate} class="mt-4 space-y-4">
         <p class="text-xs text-slate-600 leading-relaxed">
-          ป้อน Admin PIN เพื่อแก้ไขตำแหน่ง สมาชิก และทำเนียบผู้เกษียณอายุ (ใช้รหัสผ่านชุดเดียวกับระบบ Topology)
+          ป้อน Admin PIN เพื่อแก้ไขตำแหน่ง สมาชิก และทำเนียบผู้เกษียณอายุ
+          (ใช้รหัสผ่านชุดเดียวกับระบบ Topology)
         </p>
 
         {#if pinError}
-          <div class="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-xs text-red-700">
+          <div
+            class="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-xs text-red-700"
+          >
             <AlertCircle size={15} class="shrink-0" />
             <span>{pinError}</span>
           </div>
         {/if}
 
         <div>
-          <label for="admin-pin-org" class="block text-xs font-semibold text-slate-700 mb-1">
+          <label
+            for="admin-pin-org"
+            class="block text-xs font-semibold text-slate-700 mb-1"
+          >
             Admin PIN
           </label>
           <input
@@ -1485,7 +1611,7 @@
             placeholder="ป้อนรหัส PIN (เริ่มต้น: 1234)"
             autocomplete="current-password"
             required
-            class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-hidden"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-400 focus:bg-white focus:outline-hidden"
           />
         </div>
 
@@ -1505,7 +1631,7 @@
           <button
             type="submit"
             disabled={pinLoading}
-            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-60"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-60"
           >
             <Unlock size={14} />
             <span>{pinLoading ? "กำลังตรวจสอบ..." : "ปลดล็อก"}</span>
@@ -1565,7 +1691,9 @@
             >
               {selectedNode.department}
             </span>
-            <span class="text-xs font-semibold {selectedNode.isRetired ? 'text-amber-800' : 'text-slate-400'}">
+            <span
+              class="text-xs font-semibold text-slate-400"
+            >
               {selectedNode.badge}
             </span>
           </div>
@@ -1573,24 +1701,28 @@
           <h3 id="modal-title" class="mt-1.5 text-lg font-bold text-slate-900">
             {selectedNode.name}
           </h3>
-          <p class="text-xs font-semibold {mCfg.accentText}">
+          <p class="text-xs font-medium text-slate-600">
             {selectedNode.role}
           </p>
         </div>
       </div>
 
       <!-- Quick Contact / Location Info Box -->
-      <div class="mt-5 grid grid-cols-2 gap-2 rounded-xl bg-slate-50 p-3 text-xs">
+      <div
+        class="mt-5 grid grid-cols-2 gap-2 rounded-xl bg-slate-50 p-3 text-xs"
+      >
         <div class="flex items-center gap-2 text-slate-700">
-          <MapPin size={15} class="text-blue-600 shrink-0" />
+          <MapPin size={15} class="text-slate-500 shrink-0" />
           <div>
-            <span class="block text-[10px] text-slate-400">สถานที่ปฏิบัติงาน</span>
+            <span class="block text-[10px] text-slate-400"
+              >สถานที่ปฏิบัติงาน</span
+            >
             <span class="font-medium">{selectedNode.room}</span>
           </div>
         </div>
 
         <div class="flex items-center gap-2 text-slate-700">
-          <Mail size={15} class="text-blue-600 shrink-0" />
+          <Mail size={15} class="text-slate-500 shrink-0" />
           <div class="truncate">
             <span class="block text-[10px] text-slate-400">อีเมลติดต่อ</span>
             <span class="font-medium truncate block">{selectedNode.email}</span>
@@ -1600,9 +1732,11 @@
 
       <!-- Key Responsibilities or Legacy Contributions -->
       <div class="mt-5">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 mb-2">
+        <h4
+          class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 mb-2"
+        >
           {#if selectedNode.isRetired}
-            <Award size={13} class="text-amber-600" />
+            <Award size={13} class="text-slate-500" />
             <span>ผลงานและเกียรติประวัติสำคัญ</span>
           {:else}
             <Briefcase size={13} class="text-slate-400" />
@@ -1613,7 +1747,10 @@
         <div class="space-y-2">
           {#each selectedNode.responsibilities as resp}
             <div class="flex items-start gap-2.5 text-xs text-slate-700">
-              <CheckCircle2 size={14} class="{selectedNode.isRetired ? 'text-amber-600' : 'text-emerald-500'} shrink-0 mt-0.5" />
+              <CheckCircle2
+                size={14}
+                class="text-slate-400 shrink-0 mt-0.5"
+              />
               <span class="leading-relaxed">{resp}</span>
             </div>
           {/each}
@@ -1623,7 +1760,9 @@
       <!-- Technical Skills / Systems Handled -->
       {#if selectedNode.skills && selectedNode.skills.length > 0}
         <div class="mt-5">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 mb-2">
+          <h4
+            class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 mb-2"
+          >
             <Sparkles size={13} class="text-slate-400" />
             ระบบและทักษะที่เกี่ยวข้อง
           </h4>
@@ -1641,11 +1780,13 @@
       {/if}
 
       <!-- Footer Buttons -->
-      <div class="mt-6 flex items-center justify-end gap-2 border-t border-slate-100 pt-4">
+      <div
+        class="mt-6 flex items-center justify-end gap-2 border-t border-slate-100 pt-4"
+      >
         {#if isEditMode}
           <button
             type="button"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-50 border border-blue-200 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors cursor-pointer mr-auto"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-200 transition-colors cursor-pointer mr-auto"
             onclick={() => {
               const node = selectedNode;
               closeModal();
@@ -1659,7 +1800,7 @@
 
         <a
           href="mailto:{selectedNode.email}"
-          class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 transition-colors"
+          class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 transition-colors"
         >
           <Mail size={14} />
           <span>ส่งอีเมลติดต่อ</span>
@@ -1684,7 +1825,7 @@
 <OrgNodeEditModal
   open={showEditModal}
   node={nodeToEdit}
-  availableParents={availableParents}
+  {availableParents}
   isAddingRetired={isAddingRetiredMember}
   onsave={handleSaveNode}
   onclose={() => {

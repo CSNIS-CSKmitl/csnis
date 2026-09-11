@@ -15,6 +15,7 @@ export interface ServerTopologyData {
 }
 
 export const DATA_DIR = path.join(process.cwd(), 'data');
+export const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
 export const TOPOLOGY_FILE = path.join(DATA_DIR, 'topology.json');
 export const ORG_CHART_FILE = path.join(DATA_DIR, 'org-chart.json');
 
@@ -35,6 +36,9 @@ export function ensureDataFilesExist(): void {
     try {
         if (!fs.existsSync(DATA_DIR)) {
             fs.mkdirSync(DATA_DIR, { recursive: true });
+        }
+        if (!fs.existsSync(UPLOADS_DIR)) {
+            fs.mkdirSync(UPLOADS_DIR, { recursive: true });
         }
 
         // Check and create topology.json if missing or empty/invalid
@@ -137,6 +141,42 @@ export function saveServerOrgChart(data: OrgChartData): void {
         console.error('Error writing server org-chart file:', err);
         throw err;
     }
+}
+
+export function saveUploadedFile(filename: string, buffer: Buffer): string {
+    if (!fs.existsSync(UPLOADS_DIR)) {
+        fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    }
+    const safeName = path.basename(filename);
+    const targetPath = path.join(UPLOADS_DIR, safeName);
+    fs.writeFileSync(targetPath, buffer);
+
+    // Also mirror to static/uploads if static folder exists (for dev server direct static asset access)
+    try {
+        const staticUploads = path.join(process.cwd(), 'static', 'uploads');
+        if (!fs.existsSync(staticUploads)) {
+            fs.mkdirSync(staticUploads, { recursive: true });
+        }
+        fs.writeFileSync(path.join(staticUploads, safeName), buffer);
+    } catch (e) {
+        // non-critical mirroring
+    }
+
+    return `/api/uploads/${safeName}`;
+}
+
+export function getUploadedFilePath(filename: string): string | null {
+    const safeName = path.basename(filename);
+    const targetPath = path.join(UPLOADS_DIR, safeName);
+    if (fs.existsSync(targetPath)) {
+        return targetPath;
+    }
+    // Fallback to static/uploads
+    const staticPath = path.join(process.cwd(), 'static', 'uploads', safeName);
+    if (fs.existsSync(staticPath)) {
+        return staticPath;
+    }
+    return null;
 }
 
 // Automatically ensure files exist on import
