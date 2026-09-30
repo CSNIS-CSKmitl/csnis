@@ -17,6 +17,6 @@
 
     <!-- <p>Network Infrastructure · Connect. Secure. Scale.</p> -->
 
-    <span>© {new Date().getFullYear()} Techasit Vanitpattarakul</span>
+    <span>© {new Date().getFullYear()} <a href="https://github.com/techasit5415" target="_blank" rel="noopener noreferrer" class="hover:text-slate-900 hover:underline">Techasit Vanitpattarakul</a></span>
   </div>
 </footer>
