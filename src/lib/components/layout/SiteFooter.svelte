@@ -18,5 +18,9 @@
     <!-- <p>Network Infrastructure · Connect. Secure. Scale.</p> -->
 
     <span>© {new Date().getFullYear()} <a href="https://github.com/techasit5415" target="_blank" rel="noopener noreferrer" class="hover:text-slate-900 hover:underline">Techasit Vanitpattarakul</a></span>
+    <nav aria-label="นโยบายและข้อกำหนด" class="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1">
+      <a href="/privacy" class="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-slate-900">นโยบายความเป็นส่วนตัว</a>
+      <a href="/terms" class="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-slate-900">ข้อกำหนดการใช้งาน</a>
+    </nav>
   </div>
 </footer>
