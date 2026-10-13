@@ -68,7 +68,7 @@ Responsive layouts are implemented for mobile, tablet and desktop; the logical t
 
 ## GitHub Actions deploy
 
-วิธีตั้งค่า SSH, ENV_FILE, PM2 และ deploy อัตโนมัติ: [คู่มือ deploy](docs/DEPLOY.md)
+วิธีตั้งค่า SSH, ENV_FILE, PM2 และ deploy อัตโนมัติ: [คู่มือ deploy](https://github.com/CSNIS-CSKmitl/Docs/blob/main/Projects/csnis-portal/docs/DEPLOY.md)
 
 ## เอกสารกฎหมาย
 
