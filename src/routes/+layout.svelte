@@ -2,6 +2,7 @@
   import '../app.css';
   import SiteHeader from '$lib/components/layout/SiteHeader.svelte';
   import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
+  import LegalConsent from '$lib/components/LegalConsent.svelte';
   let { children } = $props();
 </script>
 
@@ -13,3 +14,4 @@
 </main>
 
 <SiteFooter />
+<LegalConsent />
