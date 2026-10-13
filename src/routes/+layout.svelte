@@ -14,4 +14,4 @@
 </main>
 
 <SiteFooter />
-<LegalConsent />
+<LegalConsent enabled={false} />
