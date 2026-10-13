@@ -3,6 +3,16 @@ import type { RequestEvent } from '@sveltejs/kit';
 let token = '';
 let tokenExpires = 0;
 
+function sourceIp(event: RequestEvent): string {
+  if (process.env.TRUST_PROXY === 'true') {
+    const realIp = event.request.headers.get('x-real-ip')?.trim();
+    if (realIp) return realIp;
+    const forwardedIp = event.request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+    if (forwardedIp) return forwardedIp;
+  }
+  return event.getClientAddress();
+}
+
 async function getAdminToken(): Promise<string | null> {
   const base = process.env.PRIVATE_POCKETBASE_URL || process.env.POCKETBASE_URL || '';
   const email = process.env.PB_ADMIN_EMAIL || '';
@@ -28,7 +38,7 @@ export async function writeServiceAudit(event: RequestEvent, statusCode: number)
       method: 'POST',
       headers: { authorization: adminToken, 'content-type': 'application/json' },
       body: JSON.stringify({
-        service: 'csnis', source_ip: event.getClientAddress(), method: event.request.method,
+        service: 'csnis', source_ip: sourceIp(event), method: event.request.method,
         path: event.url.pathname, action: event.request.method === 'GET' ? 'page_view' : 'request',
         status_code: statusCode, user_agent: event.request.headers.get('user-agent') || undefined,
         request_id: event.request.headers.get('x-request-id') || undefined, metadata: {}
