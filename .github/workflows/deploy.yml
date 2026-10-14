@@ -124,7 +124,7 @@ jobs:
       SSH_HOST: ${{ secrets.SSH_HOST }}
       SSH_USER: ${{ secrets.SSH_USER }}
       DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
-      PM2_APP_NAME: ${{ vars.PM2_APP_NAME || 'csnis-source' }}
+      PM2_APP_NAME: ${{ vars.PM2_APP_NAME || 'csnis-webpage' }}
 
 
     steps:
@@ -287,6 +287,12 @@ jobs:
           fi
           cd "$1"
           app_name="$2"
+          # The host previously ran this deployment under csnis-source. Remove
+          # that errored process when migrating to the Nginx-facing name so it
+          # cannot keep retrying against the same port.
+          if [[ "$app_name" != 'csnis-source' ]] && pm2 describe csnis-source >/dev/null 2>&1; then
+            pm2 delete csnis-source || true
+          fi
           # Skip the prepare script, which requires development-only Svelte tools.
           stage='install production dependencies'
           npm ci --omit=dev --ignore-scripts
@@ -318,7 +324,7 @@ jobs:
       SSH_HOST: ${{ secrets.SSH_HOST }}
       SSH_USER: ${{ secrets.SSH_USER }}
       DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
-      PM2_APP_NAME: ${{ vars.PM2_APP_NAME || 'csnis-source' }}
+      PM2_APP_NAME: ${{ vars.PM2_APP_NAME || 'csnis-webpage' }}
 
 
     steps:
