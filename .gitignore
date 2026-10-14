@@ -4,6 +4,7 @@ build/
 .env
 .env.*
 !.env.example
+.openai/
 
 # Local server runtime storage in project root only
 /data/
