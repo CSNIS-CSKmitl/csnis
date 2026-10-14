@@ -56,4 +56,64 @@ export const services: Service[] = [
         repository: 'https://booking.cskmitl.com/',
         status: 'พร้อมให้บริการ'
     },
+    {
+        id: 'borrowly',
+        name: 'Borrowly',
+        category: 'Equipment Lending',
+        shortDesc: 'ระบบยืมคืนอุปกรณ์และติดตามคำขอสำหรับชุมชน CS KMITL',
+        about: 'แพลตฟอร์มสำหรับค้นหาอุปกรณ์ ส่งคำขอยืม และติดตามสถานะการยืมคืนของนักศึกษาและบุคลากรในชุมชน CS KMITL',
+        highlights: [
+            'ค้นหารายการอุปกรณ์จากคลังกลาง',
+            'ส่งคำขอยืมและติดตามสถานะได้ในระบบ',
+            'จัดการรายการยืมคืนอย่างเป็นระเบียบ'
+        ],
+        icon: 'calendar',
+        repository: 'https://req.cskmitl.com/',
+        status: 'พร้อมให้บริการ'
+    },
+    {
+        id: 'announcements',
+        name: 'Announcements',
+        category: 'Central Announcements',
+        shortDesc: 'ศูนย์ประกาศกลางสำหรับข่าวสารและการแจ้งเตือนของ CS KMITL',
+        about: 'ระบบเผยแพร่ประกาศและส่งการแจ้งเตือนให้สมาชิกติดตามข่าวสารสำคัญของภาควิชาได้จากศูนย์กลางเดียว',
+        highlights: [
+            'เผยแพร่ประกาศตามกลุ่มผู้รับ',
+            'ติดตามประกาศและสถานะการอ่าน',
+            'รองรับการแจ้งเตือนผ่านช่องทางที่กำหนด'
+        ],
+        icon: 'terminal',
+        repository: 'https://announcements.cskmitl.com/',
+        status: 'พร้อมให้บริการ'
+    },
+    {
+        id: 'csnis-portal',
+        name: 'CSNIS Portal',
+        category: 'Network Infrastructure',
+        shortDesc: 'พอร์ทัลข้อมูลบริการและโครงสร้างพื้นฐานของทีม CSNIS',
+        about: 'เว็บไซต์ศูนย์รวมข้อมูลบริการ โครงสร้างพื้นฐาน และช่องทางติดต่อของทีม CSNIS เพื่อให้ค้นหาข้อมูลระบบได้สะดวก',
+        highlights: [
+            'รวมข้อมูลบริการของทีมไว้ในที่เดียว',
+            'แสดงโครงสร้างพื้นฐานและสถานะระบบ',
+            'มีเอกสารและช่องทางติดต่อสำหรับผู้ใช้งาน'
+        ],
+        icon: 'terminal',
+        repository: 'https://csnis.cskmitl.com/',
+        status: 'พร้อมให้บริการ'
+    },
+    {
+        id: 'android-backend',
+        name: 'CSNIS Mobile API',
+        category: 'Mobile Backend',
+        shortDesc: 'API กลางสำหรับแอปพลิเคชันและบริการแจ้งเตือนของ CSNIS',
+        about: 'บริการ API และตัวกลางเชื่อมต่อข้อมูลสำหรับแอปพลิเคชันของ CSNIS รวมถึงการส่งต่อการแจ้งเตือนไปยังอุปกรณ์มือถือ',
+        highlights: [
+            'เชื่อมต่อข้อมูลระหว่างแอปและบริการกลาง',
+            'จัดการการยืนยันตัวตนและคำขอ API',
+            'รองรับการส่ง Push Notification'
+        ],
+        icon: 'terminal',
+        repository: 'https://hub-api.cskmitl.com/',
+        status: 'พร้อมให้บริการ'
+    },
 ];
