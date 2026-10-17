@@ -1,16 +1,16 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { setTopologySession, verifyTopologyPin } from '$lib/server/topology-auth';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async (event) => {
     try {
-        const body = await request.json() as { pin?: string };
-        const adminPin = process.env.TOPOLOGY_ADMIN_PIN || '1234';
-
+        const body = await event.request.json() as { pin?: string };
         if (!body || typeof body.pin !== 'string') {
             return json({ success: false, message: 'PIN is required.' }, { status: 400 });
         }
 
-        if (body.pin.trim() === adminPin.trim()) {
+        if (verifyTopologyPin(body.pin.trim())) {
+            setTopologySession(event);
             return json({ success: true, message: 'Authenticated successfully.' });
         } else {
             return json({ success: false, message: 'Invalid Admin PIN.' }, { status: 401 });

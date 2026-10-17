@@ -8,6 +8,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
+import { hasTopologySession } from '$lib/server/topology-auth';
 
 const execAsync = promisify(exec);
 
@@ -164,7 +165,8 @@ async function fetchOpnsenseStats(): Promise<{ status: 'online' | 'offline'; lat
     }
 }
 
-export const GET: RequestHandler = async () => {
+export const GET: RequestHandler = async (event) => {
+    if (!hasTopologySession(event)) return json({ error: 'Topology authentication required.' }, { status: 401 });
     const now = new Date();
     const opnsenseApiResult = await fetchOpnsenseStats();
     const serverTopology = loadServerTopology();
@@ -251,7 +253,9 @@ export const GET: RequestHandler = async () => {
     return json(snapshot);
 };
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async (event) => {
+    if (!hasTopologySession(event)) return json({ success: false, message: 'Topology authentication required.' }, { status: 401 });
+    const { request } = event;
     try {
         const body = await request.json() as {
             action?: string;
