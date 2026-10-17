@@ -18,6 +18,15 @@ import {
     defaultTopology,
     type ServerTopologyData
 } from '$lib/server/dataStore';
+import {
+    computeMonitoringStats,
+    isValidTimeRange,
+    type StatsTimeRange
+} from '$lib/monitoring-stats';
+import {
+    loadMonitoringSamples,
+    recordMonitoringSamples
+} from '$lib/server/monitoring-store';
 
 // Genuine ICMP / HTTP Probe helper function (No Mock Data)
 async function probeTarget(address: string): Promise<{ status: 'online' | 'offline'; latency: number }> {
@@ -169,6 +178,9 @@ async function fetchOpnsenseStats(): Promise<{ status: 'online' | 'offline'; lat
 export const GET: RequestHandler = async (event) => {
     if (!hasTopologySession(event)) return json({ error: 'Topology authentication required.' }, { status: 401 });
     const now = new Date();
+    const rawRange = event.url.searchParams.get('range');
+    const range: StatsTimeRange = isValidTimeRange(rawRange) ? rawRange : 'today';
+
     const opnsenseApiResult = await fetchOpnsenseStats();
     const serverTopology = loadServerTopology();
 
@@ -229,6 +241,16 @@ export const GET: RequestHandler = async (event) => {
         });
 
     const activeDeviceId = deviceIdSet.has('opnsense') ? 'opnsense' : firstDeviceId;
+    const nowIso = now.toISOString();
+
+    await recordMonitoringSamples(devices, nowIso);
+    const samples = await loadMonitoringSamples(range, now);
+    const stats = computeMonitoringStats(
+        { devices, links, timestamp: nowIso },
+        samples,
+        range,
+        now
+    );
 
     const message = opnsenseApiResult?.details 
         ? `Live Monitoring active. ${opnsenseApiResult.details}`
@@ -240,14 +262,17 @@ export const GET: RequestHandler = async (event) => {
         events: activeDeviceId ? [
             {
                 id: `api-evt-${Date.now()}`,
-                timestamp: now.toISOString(),
+                timestamp: nowIso,
                 status: 'online',
                 message,
                 deviceId: activeDeviceId
             }
         ] : [],
-        timestamp: now.toISOString(),
+        timestamp: nowIso,
         source: 'api',
+        realtime: true,
+        samples,
+        stats,
         mapConfig: serverTopology.mapConfig
     };
 

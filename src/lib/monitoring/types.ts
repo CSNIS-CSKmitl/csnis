@@ -1,3 +1,5 @@
+import type { MonitoringSample, MonitoringStatsSummary } from '../monitoring-stats';
+
 export type DeviceStatus = 'online' | 'offline';
 
 export type DeviceKind = 'router' | 'firewall' | 'core' | 'wireless' | 'switch' | 'server';
@@ -35,7 +37,11 @@ export interface NetworkSnapshot {
     events: NetworkEvent[];
     timestamp: string;
     source: 'mock' | 'api';
+    samples?: MonitoringSample[];
+    stats?: MonitoringStatsSummary;
+    realtime?: boolean;
 }
 export interface MonitoringProvider {
     getSnapshot(signal?: AbortSignal): Promise<NetworkSnapshot>;
 }
+
