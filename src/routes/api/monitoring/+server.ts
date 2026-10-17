@@ -4,13 +4,13 @@ import { initialDevices, linkStatus } from '$lib/monitoring/mock';
 import type { NetworkDevice, NetworkLink, NetworkSnapshot } from '$lib/monitoring/types';
 import http from 'http';
 import https from 'https';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
 import { hasTopologySession } from '$lib/server/topology-auth';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 import {
     loadServerTopology,
@@ -72,13 +72,14 @@ async function probeTarget(address: string): Promise<{ status: 'online' | 'offli
     // Real System ICMP Ping Probe for IP addresses / hostnames
     const cleanHost = address.trim().replace(/^https?:\/\//, '').split('/')[0].split(':')[0];
     const isWindows = process.platform === 'win32';
-    const pingCmd = isWindows 
-        ? `ping -n 1 -w 1500 ${cleanHost}` 
-        : `ping -c 1 -W 2 ${cleanHost}`;
+    const pingCommand = 'ping';
+    const pingArgs = isWindows
+        ? ['-n', '1', '-w', '1500', cleanHost]
+        : ['-c', '1', '-W', '2', cleanHost];
 
     try {
         const start = Date.now();
-        const { stdout } = await execAsync(pingCmd, { timeout: 2000 });
+        const { stdout } = await execFileAsync(pingCommand, pingArgs, { timeout: 2000 });
         const latencyMs = Math.max(1, Date.now() - start);
 
         // Check if output contains positive ICMP reply
