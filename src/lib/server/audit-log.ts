@@ -1,16 +1,17 @@
 import type { RequestEvent } from '@sveltejs/kit';
+import { resolveClientIp } from './client-ip.mjs';
 
 let token = '';
 let tokenExpires = 0;
 
 function sourceIp(event: RequestEvent): string {
-  if (process.env.TRUST_PROXY === 'true') {
-    const realIp = event.request.headers.get('x-real-ip')?.trim();
-    if (realIp) return realIp;
-    const forwardedIp = event.request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-    if (forwardedIp) return forwardedIp;
-  }
-  return event.getClientAddress();
+  let remoteAddress = '';
+  try { remoteAddress = event.getClientAddress(); } catch { /* unavailable in some adapters */ }
+  return resolveClientIp({
+    headers: Object.fromEntries(event.request.headers.entries()),
+    remoteAddress,
+    trustProxy: process.env.TRUST_PROXY === 'true'
+  });
 }
 
 async function getAdminToken(): Promise<string | null> {
@@ -34,14 +35,16 @@ export async function writeServiceAudit(event: RequestEvent, statusCode: number)
     const base = process.env.PRIVATE_POCKETBASE_URL || process.env.POCKETBASE_URL || '';
     const adminToken = await getAdminToken();
     if (!base || !adminToken) return;
+    const clientIp = sourceIp(event);
     await fetch(`${base.replace(/\/$/, '')}/api/collections/service_access_logs/records`, {
       method: 'POST',
       headers: { authorization: adminToken, 'content-type': 'application/json' },
       body: JSON.stringify({
-        service: 'csnis', source_ip: sourceIp(event), method: event.request.method,
+        service: 'csnis', source_ip: clientIp, method: event.request.method,
         path: event.url.pathname, action: event.request.method === 'GET' ? 'page_view' : 'request',
         status_code: statusCode, user_agent: event.request.headers.get('user-agent') || undefined,
-        request_id: event.request.headers.get('x-request-id') || undefined, metadata: {}
+        request_id: event.request.headers.get('x-request-id') || undefined,
+        metadata: { ip_version: clientIp ? (clientIp.includes(':') ? 6 : 4) : null }
       })
     });
   } catch (error) {
