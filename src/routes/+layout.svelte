@@ -3,10 +3,12 @@
   import SiteHeader from '$lib/components/layout/SiteHeader.svelte';
   import SiteFooter from '$lib/components/layout/SiteFooter.svelte';
   import LegalConsent from '$lib/components/LegalConsent.svelte';
+  import AnnouncementCenter from '$lib/components/AnnouncementCenter.svelte';
   let { children } = $props();
 </script>
 
 <SiteHeader />
+<AnnouncementCenter />
 
 <svelte:head>
   <meta name="author" content="เตชสิทธิ์ วาณิชภัทรกุล" />

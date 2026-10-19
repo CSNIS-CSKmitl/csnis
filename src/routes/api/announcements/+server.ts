@@ -1,0 +1,6 @@
+import { json } from '@sveltejs/kit';
+import { createHash } from 'node:crypto';
+import { env } from '$env/dynamic/private';
+const url = env.POCKETBASE_URL ?? env.PUBLIC_POCKETBASE_URL ?? '';
+export async function GET(){try{const r=await fetch(`${url}/api/collections/announcements/records?filter=status%3D%22published%22&sort=-updated&perPage=100`);const data=await r.json();const items=(data.items||[]).filter((a:any)=>!a.targets?.length||a.targets.includes('all')||a.targets.includes('csnis'));return json({items,configured:r.ok});}catch{return json({items:[],configured:false});}}
+export async function POST({request,getClientAddress}){try{const p=await request.json();const id=String(p.announcement||p.id||'').trim();if(!/^[a-zA-Z0-9_-]{1,32}$/.test(id))return json({ok:true,recorded:false});const viewer_hash=createHash('sha256').update(`${getClientAddress()}:${request.headers.get('user-agent')||'unknown'}`).digest('hex');const r=await fetch(`${url}/api/collections/announcement_reads/records`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({announcement:id,revision:String(p.revision||'default').slice(0,100),site:'csnis',viewer_hash})});return json({ok:true,recorded:r.ok});}catch{return json({ok:true,recorded:false});}}
