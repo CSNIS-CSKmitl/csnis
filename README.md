@@ -1,5 +1,7 @@
 # CSNIS Network Infrastructure
 
+[แผนภาพเส้นทางการกดใช้งานและไฟล์ที่ถูกเรียก](CLICK_FLOW.md)
+
 A real Svelte 5 / SvelteKit application with Tailwind CSS 4 and official shadcn-svelte Button and Switch components (vendored through the shadcn-svelte CLI). Flat navy, blue, white and light-gray theme, with no gradients.
 
 ## Run locally
