@@ -59,7 +59,7 @@ export async function writeServiceAudit(
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          service: "csnis",
+          service: "i1xjo94dysy434b", // CSNIS relation in services
           source_ip: clientIp,
           method: event.request.method,
           path: event.url.pathname,

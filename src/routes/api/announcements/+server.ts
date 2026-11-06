@@ -40,7 +40,7 @@ export async function POST({ request, getClientAddress }) {
       body: JSON.stringify({
         announcement: id,
         revision: String(p.revision || "default").slice(0, 100),
-        site: "csnis",
+        site: "i1xjo94dysy434b", // CSNIS relation in services
         viewer_hash,
       }),
     });
