@@ -1,1 +1,1 @@
-export * from '../types/network';
+export * from "../types/network";

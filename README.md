@@ -26,13 +26,13 @@ The static adapter prerenders every route into `build/`, with directory-style UR
 
 ## Routes
 
-| Page | Route |
-| --- | --- |
-| Home | `/` |
-| Services | `/services/` |
+| Page           | Route              |
+| -------------- | ------------------ |
+| Home           | `/`                |
+| Services       | `/services/`       |
 | Infrastructure | `/infrastructure/` |
-| Live Topology | `/topology/` |
-| Contact | `/contact/` |
+| Live Topology  | `/topology/`       |
+| Contact        | `/contact/`        |
 
 Shared navigation and footer live in `src/routes/+layout.svelte`; shared colors and responsive foundations in `src/app.css`. PageHeader, status badges, topology nodes/map, details and recent events are reusable components in `src/lib/components`. Service content lives in `src/lib/data/services.ts`.
 
@@ -67,7 +67,6 @@ Documentation consulted: [shadcn-svelte](https://shadcn-svelte.com/docs/migratio
 
 Responsive layouts are implemented for mobile, tablet and desktop; the logical topology map scrolls horizontally on narrow screens to keep device labels legible. Keyboard users can focus the scroll region and inspect nodes. Visual browser QA was not requested and has not been claimed.
 
-
 ## GitHub Actions deploy
 
 วิธีตั้งค่า SSH, ENV_FILE, PM2 และ deploy อัตโนมัติ: [คู่มือ deploy](https://github.com/CSNIS-CSKmitl/Docs/blob/main/Projects/csnis-portal/docs/DEPLOY.md)
@@ -76,4 +75,3 @@ Responsive layouts are implemented for mobile, tablet and desktop; the logical t
 
 - [นโยบายความเป็นส่วนตัว](https://csnis.cskmitl.com/privacy)
 - [ข้อกำหนดการใช้งาน](https://csnis.cskmitl.com/terms)
-
