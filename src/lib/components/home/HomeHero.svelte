@@ -1,110 +1,107 @@
 <script lang="ts">
-  import { ArrowRight, ShieldCheck, Network } from "lucide-svelte";
+  import { ArrowUpRight, ShieldCheck, Network, Activity } from "lucide-svelte";
   import { Button } from "$lib/components/ui/button";
   import HomeNetwork from "$lib/components/HomeNetwork.svelte";
 </script>
 
 <section class="hero">
   <div class="container hero-grid">
-    <div>
-      <!-- <div class="eyebrow">CSNIS / Network Infrastructure</div> -->
-      <h1>
-        Connect.
-        <br />
-        Secure.
-        <br />
-        <span>Scale.</span>
-      </h1>
-      <p class="hero-desc">ดูแลทุกการเชื่อมต่อ และการบริการพื้นฐาน</p>
-      <p class="muted intro">
-        CSNIS Network Infrastructure ดูแลระบบเครือข่ายและโครงสร้างพื้นฐาน
-      </p>
-      <div class="actions">
-        <Button href="/services/" class="h-12 px-6"
-          >Explore Services
-          <ArrowRight size={16} />
-        </Button>
-        <Button href="/topology/" variant="outline" class="h-12 px-6">
-          <Network size={16} />
-          Live Topology</Button
-        >
+    <div class="hero-content">
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span class="status-text">CS Network Operations · Online</span>
       </div>
-      <!-- <div class="principles">
-        <span>
-          <ShieldCheck size={16} />
-          Secure by design</span
-        >
-        <span>
-          <Network size={16} />
-          Built to connect</span
-        >
-      </div> -->
+
+      <h1 class="hero-title">
+        โครงสร้างพื้นฐานเครือข่าย CS KMITL
+      </h1>
+
+      <p class="hero-desc">
+        ดูแลระบบโครงข่ายหลัก สวิตช์เครือข่ายความเร็วสูง เกตเวย์ไฟร์วอลล์ และการจัดสรรไอพีแอดเดรสสำหรับห้องปฏิบัติการและงานวิจัย
+      </p>
+
+      <div class="actions">
+        <Button href="/services/" class="h-10 px-5 text-xs font-medium">
+          สำรวจบริการเครือข่าย
+          <ArrowUpRight size={15} strokeWidth={1.5} />
+        </Button>
+        <Button href="/topology/" variant="outline" class="h-10 px-5 text-xs font-medium">
+          <Network size={15} strokeWidth={1.5} />
+          ผังโครงข่ายสด (Live Topology)
+        </Button>
+      </div>
     </div>
-    <HomeNetwork />
+
+    <div class="network-preview">
+      <HomeNetwork />
+    </div>
   </div>
 </section>
 
 <style>
   .hero {
-    background: white;
-    padding: 64px 0 72px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 56px 0 64px;
   }
   .hero-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 70px;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 48px;
     align-items: center;
   }
-  h1 {
-    font-size: clamp(3.5rem, 5.9vw, 5rem);
-    line-height: 1.06;
-    letter-spacing: -0.065em;
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
-  h1 span {
-    color: #1d4ed8;
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    font-family: monospace;
+    font-size: 11px;
+    color: #475569;
+  }
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: #16a34a;
+  }
+  .hero-title {
+    font-size: 2.25rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    color: #0f172a;
+    margin: 0;
   }
   .hero-desc {
-    margin-top: 24px;
-    font-weight: 600;
-    font-size: 1.08rem;
-  }
-  .intro {
-    margin-top: 12px;
-    max-width: 490px;
-    font-size: 0.95rem;
-    line-height: 1.9;
+    font-size: 0.875rem;
+    line-height: 1.65;
+    color: #475569;
+    margin: 0;
+    max-width: 520px;
   }
   .actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 30px;
-  }
-  .principles {
-    margin-top: 28px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 22px;
-    font-size: 0.75rem;
-    color: #64748b;
-  }
-  .principles span {
-    display: flex;
-    gap: 7px;
-    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
   }
   @media (max-width: 900px) {
-    .hero-grid {
-      gap: 32px;
-    }
-  }
-  @media (max-width: 760px) {
     .hero {
       padding: 40px 0;
     }
     .hero-grid {
       grid-template-columns: 1fr;
-      gap: 40px;
+      gap: 32px;
     }
   }
 </style>
