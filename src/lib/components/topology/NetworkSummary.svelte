@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import type { NetworkSnapshot } from '$lib/monitoring/types';
 	import {
 		computeMonitoringStats,
@@ -83,7 +83,7 @@
 			>
 				<Radio
 					size={13}
-					class={autoRefresh ? 'animate-pulse text-emerald-600' : 'text-blue-600'}
+					class={autoRefresh ? ' text-emerald-600' : 'text-blue-600'}
 				/>
 				{#if snapshot.source === 'api'}
 					{autoRefresh ? 'Realtime Polling' : 'API Snapshot'}
@@ -142,7 +142,7 @@
 			type="button"
 			aria-pressed={activeFilter === 'all'}
 			onclick={() => toggleFilter('all')}
-			class="metric panel text-left transition-all hover:border-blue-300 {activeFilter === 'all'
+			class="metric panel text-left transition-colors hover:border-blue-300 {activeFilter === 'all'
 				? 'ring-2 ring-blue-600 border-blue-500 bg-blue-50/20'
 				: ''}"
 		>
@@ -158,7 +158,7 @@
 			type="button"
 			aria-pressed={activeFilter === 'online'}
 			onclick={() => toggleFilter('online')}
-			class="metric panel text-left transition-all hover:border-emerald-300 {activeFilter ===
+			class="metric panel text-left transition-colors hover:border-emerald-300 {activeFilter ===
 			'online'
 				? 'ring-2 ring-emerald-600 border-emerald-500 bg-emerald-50/20'
 				: ''}"
@@ -175,7 +175,7 @@
 			type="button"
 			aria-pressed={activeFilter === 'offline'}
 			onclick={() => toggleFilter('offline')}
-			class="metric panel text-left transition-all hover:border-red-300 {activeFilter === 'offline'
+			class="metric panel text-left transition-colors hover:border-red-300 {activeFilter === 'offline'
 				? 'ring-2 ring-red-600 border-red-500 bg-red-50/20'
 				: ''}"
 		>
@@ -193,7 +193,7 @@
 			type="button"
 			aria-pressed={activeFilter === 'degraded'}
 			onclick={() => toggleFilter('degraded')}
-			class="metric panel text-left transition-all hover:border-amber-300 {activeFilter ===
+			class="metric panel text-left transition-colors hover:border-amber-300 {activeFilter ===
 			'degraded'
 				? 'ring-2 ring-amber-600 border-amber-500 bg-amber-50/20'
 				: ''}"
@@ -277,13 +277,13 @@
 							>
 								<div class="w-full flex items-end justify-center gap-0.5 h-24">
 									<div
-										class="w-1/2 rounded-t transition-all {point.offlineCount > 0
+										class="w-1/2 rounded-t transition-colors {point.offlineCount > 0
 											? 'bg-amber-500'
 											: 'bg-emerald-500'}"
 										style:height={`${Math.max(8, Math.round(point.onlinePct))}%`}
 									></div>
 									<div
-										class="w-1/2 rounded-t bg-blue-600/85 transition-all"
+										class="w-1/2 rounded-t bg-blue-600/85 transition-colors"
 										style:height={`${latencyHeightPct}%`}
 									></div>
 								</div>

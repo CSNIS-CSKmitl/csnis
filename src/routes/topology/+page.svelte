@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
   import NetworkSummary from "$lib/components/topology/NetworkSummary.svelte";
   import ConnectionsTable from "$lib/components/topology/ConnectionsTable.svelte";
   import { onMount } from "svelte";
@@ -535,7 +535,7 @@
             <!-- Full Width Toggle Button (ขยายเต็มหน้าจอซ้าย-ขวา) -->
             <button
               onclick={() => (fullWidth = !fullWidth)}
-              class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium transition-all cursor-pointer shadow-xs"
+              class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium transition-colors cursor-pointer shadow-xs"
               title={fullWidth
                 ? "ย่อพื้นที่กลับเป็นขนาดมาตรฐาน"
                 : "ขยายพื้นที่แผนผังเต็มความกว้างซ้าย-ขวา (Full Width)"}

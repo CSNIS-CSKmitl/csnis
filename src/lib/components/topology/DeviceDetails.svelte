@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
   import type { NetworkDevice, DeviceKind } from "$lib/monitoring/types";
   import StatusBadge from "./StatusBadge.svelte";
   import {
@@ -108,7 +108,7 @@
 
 <section class="panel p-6" aria-label="Device details">
   <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">
+    <h3 class="text-xs font-bold text-slate-500">
       Device Diagnostics
     </h3>
     {#if device && editMode}
@@ -381,7 +381,7 @@
           >
             <Activity
               size={14}
-              class={pinging ? "animate-pulse text-blue-600" : "text-slate-600"}
+              class={pinging ? " text-blue-600" : "text-slate-600"}
             />
             {pinging ? "Pinging target…" : "Run Live Ping Test"}
           </button>

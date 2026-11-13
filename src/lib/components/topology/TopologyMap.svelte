@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
   import type { NetworkSnapshot } from "$lib/monitoring/types";
   import TopologyNode from "./TopologyNode.svelte";
   import { Lock, Unlock, MoveHorizontal, Maximize2 } from "lucide-svelte";
@@ -274,7 +274,7 @@
     <!-- Lock / Unlock Map Size Button -->
     <button
       onclick={toggleLockSize}
-      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold transition-all cursor-pointer {isSizeLocked
+      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold transition-colors cursor-pointer {isSizeLocked
         ? 'bg-slate-100 text-slate-700 border border-slate-300 hover:bg-slate-200'
         : 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200'}"
       title={isSizeLocked
@@ -285,7 +285,7 @@
         <Lock size={13} class="text-slate-600" />
         <span>Map Size Locked ({mapWidth}×{mapHeight}px)</span>
       {:else}
-        <Unlock size={13} class="text-amber-700 animate-pulse" />
+        <Unlock size={13} class="text-amber-700" />
         <span>Map Resizable ({mapWidth}×{mapHeight}px)</span>
       {/if}
     </button>
@@ -387,7 +387,7 @@
             stroke={strokeColor}
             stroke-width={isOffline ? "3.5" : editMode ? "4" : "2"}
             stroke-dasharray={isOffline ? "6 4" : undefined}
-            class="transition-all duration-150 {editMode
+            class="transition-colors duration-150 {editMode
               ? 'cursor-pointer hover:stroke-red-500'
               : ''}"
             onclick={() => editMode && handleRemoveLink(link.id)}
@@ -416,7 +416,7 @@
             stroke="#2563eb"
             stroke-width="3"
             stroke-dasharray="6 4"
-            class="animate-pulse"
+            class=""
           />
           <circle cx={mousePos.x} cy={mousePos.y} r="6" fill="#2563eb" />
         {/if}

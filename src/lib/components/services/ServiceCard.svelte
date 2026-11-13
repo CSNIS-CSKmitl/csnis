@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
   import {
     CalendarDays,
     Globe,
@@ -45,7 +45,7 @@
 
 <article
   id={service.id}
-  class="panel service-card relative flex flex-col justify-between p-6 sm:p-7 rounded-2xl border border-slate-200/90 bg-white transition-all duration-300 hover:bg-zinc-600/5 hover:shadow-xl hover:bg-zinc-300/5 min-h-[440px] overflow-hidden"
+  class="panel service-card relative flex flex-col justify-between p-6 sm:p-7 rounded-2xl border border-slate-200/90 bg-white transition-colors duration-300 hover:bg-zinc-600/5 hover:shadow-xl hover:bg-zinc-300/5 min-h-[440px] overflow-hidden"
   role="region"
   aria-label={`บริการ ${service.name}`}
   onmouseenter={() => (isHovered = true)}
@@ -126,7 +126,7 @@
   </div>
 
   <div
-    class="service-overlay absolute inset-0 z-20 flex flex-col justify-between p-6 sm:p-7 rounded-2xl transition-all duration-300 ease-out {isOverlayVisible
+    class="service-overlay absolute inset-0 z-20 flex flex-col justify-between p-6 sm:p-7 rounded-2xl transition-colors duration-300 ease-out {isOverlayVisible
       ? 'opacity-100 translate-y-0 pointer-events-auto'
       : 'opacity-0 translate-y-3 pointer-events-none  '}"
   >
@@ -149,7 +149,7 @@
           <!-- <span
             class="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#246A3B] bg-[#ECF5EE] border border-[#CEE4D2] px-2 py-0.5 rounded-full"
           >
-            <span class="w-1.5 h-1.5 rounded-full bg-[#246A3B] animate-pulse"
+            <span class="w-1.5 h-1.5 rounded-full bg-[#246A3B]"
             ></span>
             {service.status}
           </span> -->
@@ -190,7 +190,7 @@
     >
       <div>
         <div
-          class="text-[11px] font-bold uppercase tracking-wider text-[#825325] flex items-center gap-1.5 mb-1"
+          class="text-[11px] font-bold text-[#825325] flex items-center gap-1.5 mb-1"
         >
           <Info size={13} />
           เกี่ยวกับบริการนี้
@@ -202,7 +202,7 @@
 
       <div class="space-y-1.5 pt-2 border-t border-[#E8E1D5]">
         <div
-          class="text-[11px] font-bold uppercase tracking-wider text-[#796F63]"
+          class="text-[11px] font-bold text-[#796F63]"
         >
           ฟีเจอร์และจุดเด่นสำคัญ:
         </div>
@@ -223,7 +223,7 @@
         href={service.repository}
         target="_blank"
         rel="noopener noreferrer"
-        class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-xs transition-all"
+        class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-xs transition-colors"
       >
         <Globe size={14} />
         <span>เข้าสู่ระบบ {service.name}</span>
