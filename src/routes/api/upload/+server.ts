@@ -33,17 +33,16 @@ export const POST: RequestHandler = async ({ request }) => {
       "image/png",
       "image/webp",
       "image/gif",
-      "image/svg+xml",
     ];
     const isImage =
       validMimes.includes(mimeType) ||
-      Boolean(file.name.match(/\.(jpe?g|png|webp|gif|svg)$/i));
+      Boolean(file.name.match(/\.(jpe?g|png|webp|gif)$/i));
 
     if (!isImage) {
       return json(
         {
           success: false,
-          message: "รองรับเฉพาะไฟล์รูปภาพ (JPG, PNG, WebP, GIF, SVG)",
+          message: "รองรับเฉพาะไฟล์รูปภาพ (JPG, PNG, WebP, GIF)",
         },
         { status: 400 },
       );
