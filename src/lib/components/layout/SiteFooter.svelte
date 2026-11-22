@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { version } from "$app/environment";
   import { Network } from "lucide-svelte";
 </script>
 
@@ -17,7 +18,7 @@
 
     <!-- <p>Network Infrastructure · Connect. Secure. Scale.</p> -->
 
-    <span>© {new Date().getFullYear()} · <a href="https://github.com/techasit5415" target="_blank" rel="noopener noreferrer" class="hover:text-slate-900 hover:underline">นาย เตชสิทธิ์ วาณิชภัทรกุล</a></span>
+    <span>© {new Date().getFullYear()} · <a href="https://github.com/techasit5415" target="_blank" rel="noopener noreferrer" class="hover:text-slate-900 hover:underline">นาย เตชสิทธิ์ วาณิชภัทรกุล</a> · <span class="font-mono tabular-nums" title="Semantic Versioning: MAJOR.MINOR.PATCH">v{version}</span></span>
     <nav aria-label="นโยบายและข้อกำหนด" class="mt-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-0">
       <a href="/privacy" class="inline-flex min-h-7 items-center underline underline-offset-4 hover:text-slate-900">นโยบายความเป็นส่วนตัว</a>
       <a href="/terms" class="inline-flex min-h-7 items-center underline underline-offset-4 hover:text-slate-900">ข้อกำหนดการใช้งาน</a>
