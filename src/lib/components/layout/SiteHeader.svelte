@@ -21,9 +21,7 @@
 <header>
   <div class="container nav-inner">
     <a href="/" class="brand" aria-label="CSNIS Home">
-      <span class="brand-icon">
-        <Network size={24} />
-      </span>
+      <img src="/logocs.png" alt="CS KMITL Logo" class="brand-logo" />
 
       <span>
         <strong
@@ -84,14 +82,11 @@
     gap: 11px;
     flex-shrink: 0;
   }
-  .brand-icon {
-    color: white;
-    background: #1d4ed8;
+  .brand-logo {
     width: 43px;
     height: 43px;
-    border-radius: 11px;
-    display: grid;
-    place-items: center;
+    object-fit: contain;
+    flex-shrink: 0;
   }
   .brand strong {
     font-size: 1.3rem;
