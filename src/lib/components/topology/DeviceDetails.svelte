@@ -10,7 +10,9 @@
     Trash2,
     X,
     Info,
+    Copy,
   } from "lucide-svelte";
+  import { toast } from "$lib/toast";
 
   let {
     device,
@@ -60,6 +62,16 @@
     device.height = editHeight;
     onupdate(device);
     editing = false;
+    toast.success(`อัปเดตข้อมูล "${device.name}" แล้ว`);
+  }
+
+  async function copyIp(ip: string) {
+    try {
+      await navigator.clipboard.writeText(ip);
+      toast.success(`คัดลอก IP ${ip} เรียบร้อยแล้ว`);
+    } catch {
+      toast.error("ไม่สามารถคัดลอก IP ได้");
+    }
   }
 
   function handleDelete() {
@@ -87,13 +99,16 @@
       const data = await res.json();
       if (data.status === "online") {
         pingResult = { latency: data.latency, status: "online" };
+        toast.success(`Ping ${device.address} สำเร็จ (${data.latency}ms)`);
       } else {
         pingResult = {
           error: "Request timed out / Target Unreachable (offline)",
         };
+        toast.error(`Ping ${device.address} ไม่ตอบสนอง (offline)`);
       }
     } catch {
       pingResult = { error: "Network error performing live probe." };
+      toast.error("ไม่สามารถเชื่อมต่อเพื่อทดสอบ Ping ได้");
     } finally {
       pinging = false;
     }
@@ -288,7 +303,18 @@
                 >Unnumbered L2 Bridge</span
               >
             {:else}
-              {device.address}
+              <span class="inline-flex items-center gap-1.5">
+                <span>{device.address}</span>
+                <button
+                  type="button"
+                  onclick={() => device && copyIp(device.address)}
+                  class="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
+                  title="คัดลอก IP Address"
+                  aria-label="คัดลอก IP Address"
+                >
+                  <Copy size={12} />
+                </button>
+              </span>
             {/if}
           </dd>
         </div>

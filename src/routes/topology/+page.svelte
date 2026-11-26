@@ -22,6 +22,7 @@
   import { createMockProvider } from "$lib/monitoring/mock";
   import { createApiProvider } from "$lib/monitoring/api";
   import { createPoller } from "$lib/monitoring/poller";
+  import { toast } from "$lib/toast";
   import type {
     NetworkSnapshot,
     NetworkDevice,
@@ -79,11 +80,11 @@
     return null;
   }
 
-  async function saveToServer(data: NetworkSnapshot) {
-    if (!data) return;
+  async function saveToServer(data: NetworkSnapshot): Promise<boolean> {
+    if (!data) return false;
     isSaving = true;
     try {
-      await fetch("/api/monitoring", {
+      const res = await fetch("/api/monitoring", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -92,8 +93,10 @@
           links: data.links,
         }),
       });
+      return res.ok;
     } catch (err) {
       console.error("Error saving topology to server:", err);
+      return false;
     } finally {
       isSaving = false;
     }
@@ -101,10 +104,14 @@
 
   async function handleSaveLayout() {
     if (!snapshot) return;
-    await saveToServer(snapshot);
-    hasUnsavedChanges = false;
-    await poller?.refresh();
-    alert("บันทึกแผนผังเครือข่ายลงบนเซิร์ฟเวอร์ (Server Storage) สำเร็จ!");
+    const ok = await saveToServer(snapshot);
+    if (ok) {
+      hasUnsavedChanges = false;
+      await poller?.refresh();
+      toast.success("บันทึกแผนผังเครือข่ายลงเซิร์ฟเวอร์เรียบร้อยแล้ว");
+    } else {
+      toast.error("ไม่สามารถบันทึกแผนผังเครือข่ายลงเซิร์ฟเวอร์ได้");
+    }
   }
 
   async function handleResetLayout() {
@@ -115,18 +122,22 @@
     ) {
       try {
         isSaving = true;
-        await fetch("/api/monitoring", {
+        const res = await fetch("/api/monitoring", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "reset_topology" }),
         });
         isSaving = false;
-        hasUnsavedChanges = false;
-        await poller?.refresh();
-        alert("รีเซ็ตแผนผังบนเซิร์ฟเวอร์เรียบร้อยแล้ว!");
+        if (res.ok) {
+          hasUnsavedChanges = false;
+          await poller?.refresh();
+          toast.success("รีเซ็ตแผนผังเครือข่ายบนเซิร์ฟเวอร์เรียบร้อยแล้ว");
+        } else {
+          toast.error("เกิดข้อผิดพลาดในการรีเซ็ตแผนผังบนเซิร์ฟเวอร์");
+        }
       } catch {
         isSaving = false;
-        alert("เกิดข้อผิดพลาดในการรีเซ็ตผังบนเซิร์ฟเวอร์");
+        toast.error("เกิดข้อผิดพลาดในการรีเซ็ตผังบนเซิร์ฟเวอร์");
       }
     }
   }
@@ -149,6 +160,7 @@
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
+    toast.success("ส่งออกไฟล์ Topology JSON เรียบร้อยแล้ว");
   }
 
   function handleImportTopology(file: File) {
@@ -158,7 +170,7 @@
         const content = e.target?.result as string;
         const parsed = JSON.parse(content);
         if (!Array.isArray(parsed.devices) || !Array.isArray(parsed.links)) {
-          alert(
+          toast.error(
             'รูปแบบไฟล์ JSON ไม่ถูกต้อง: จำเป็นต้องมีโครงสร้าง "devices" และ "links"',
           );
           return;
@@ -176,12 +188,12 @@
             source: "api",
           };
           hasUnsavedChanges = true;
-          alert(
+          toast.success(
             'นำเข้าผังเครือข่ายสำเร็จ! กรุณากด "Save Topology" เพื่อบันทึกลงเซิร์ฟเวอร์',
           );
         }
       } catch {
-        alert("ไม่สามารถอ่านไฟล์ JSON ได้ กรุณาตรวจสอบความถูกต้องของไฟล์");
+        toast.error("ไม่สามารถอ่านไฟล์ JSON ได้ กรุณาตรวจสอบความถูกต้องของไฟล์");
       }
     };
     reader.readAsText(file);
@@ -212,6 +224,7 @@
       selected = newDevices[0]?.id || "";
     }
     hasUnsavedChanges = true;
+    toast.info("ลบอุปกรณ์ออกจากแผนผังแล้ว (อย่าลืมกด Save Topology)");
   }
 
   function handleAddCustomDevice(
@@ -249,6 +262,7 @@
     };
     selectDevice(deviceToAdd.id);
     hasUnsavedChanges = true;
+    toast.success(`เพิ่มอุปกรณ์ "${deviceToAdd.name}" แล้ว`);
   }
 
   function handleMoveDevice(
@@ -551,11 +565,50 @@
     <!--     -->
 
     <ConnectionsTable {snapshot} />
-  {:else}
+  {:else if error}
     <div class="panel p-16 text-center muted" role="status">
-      {error
-        ? "Network data is unavailable. Use Refresh now to retry."
-        : "Loading network topology…"}
+      Network data is unavailable. Use Refresh now to retry.
+    </div>
+  {:else}
+    <!-- Pulsing Shimmer Loading Skeleton -->
+    <div class="space-y-6 animate-pulse" aria-busy="true" aria-label="Loading network topology">
+      <div class="metric-grid">
+        {#each [1, 2, 3, 4] as _}
+          <div class="metric panel space-y-3">
+            <div class="h-3.5 w-24 rounded bg-slate-200"></div>
+            <div class="h-8 w-16 rounded bg-slate-200"></div>
+            <div class="h-3 w-32 rounded bg-slate-100"></div>
+          </div>
+        {/each}
+      </div>
+
+      <div class="topology-layout">
+        <div class="panel p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div class="space-y-2">
+              <div class="h-4 w-32 rounded bg-slate-200"></div>
+              <div class="h-3 w-52 rounded bg-slate-100"></div>
+            </div>
+            <div class="h-7 w-28 rounded bg-slate-200"></div>
+          </div>
+          <div class="h-[420px] w-full rounded-xl bg-slate-100"></div>
+        </div>
+
+        <aside class="space-y-5">
+          <div class="panel p-6 space-y-3">
+            <div class="h-3.5 w-32 rounded bg-slate-200"></div>
+            <div class="h-5 w-40 rounded bg-slate-200"></div>
+            <div class="h-3 w-full rounded bg-slate-100"></div>
+            <div class="h-3 w-3/4 rounded bg-slate-100"></div>
+            <div class="h-9 w-full rounded-lg bg-slate-200 mt-4"></div>
+          </div>
+          <div class="panel p-6 space-y-3">
+            <div class="h-3.5 w-28 rounded bg-slate-200"></div>
+            <div class="h-3 w-full rounded bg-slate-100"></div>
+            <div class="h-3 w-5/6 rounded bg-slate-100"></div>
+          </div>
+        </aside>
+      </div>
     </div>
   {/if}
 </div>
@@ -566,6 +619,7 @@
   onsuccess={() => {
     editMode = true;
     poller?.setPaused(true);
+    toast.success("ปลดล็อก Admin Edit Mode แล้ว");
   }}
 />
 <AddDeviceModal bind:open={addModalOpen} onadd={handleAddCustomDevice} />
@@ -598,6 +652,7 @@
   }
   .map-heading {
     border-bottom: 1px solid #e2e8f0;
+    flex-wrap: wrap;
   }
   .map-footer {
     border-top: 1px solid #e2e8f0;
@@ -617,7 +672,8 @@
     }
   }
   @media (max-width: 650px) {
-    aside {
+    aside,
+    .topology-layout.full-width aside {
       grid-template-columns: 1fr;
     }
     .map-heading {

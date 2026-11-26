@@ -17,6 +17,8 @@
     Link,
   } from "lucide-svelte";
   import type { OrgNode } from "$lib/data/orgChart";
+  import { toast } from "$lib/toast";
+  import AvatarImage from "$lib/components/ui/AvatarImage.svelte";
 
   let {
     open = false,
@@ -103,12 +105,12 @@
   // Direct server upload
   async function uploadImageFile(file: File) {
     if (!file.type.startsWith("image/") && !file.name.match(/\.(jpe?g|png|webp|gif|svg)$/i)) {
-      alert("กรุณาเลือกไฟล์รูปภาพ (JPG, PNG, WebP, GIF, SVG)");
+      toast.error("กรุณาเลือกไฟล์รูปภาพ (JPG, PNG, WebP, GIF, SVG)");
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      alert("ขนาดไฟล์ภาพใหญ่เกิน 10MB กรุณาเลือกไฟล์ที่มีขนาดเล็กลง");
+      toast.error("ขนาดไฟล์ภาพใหญ่เกิน 10MB กรุณาเลือกไฟล์ที่มีขนาดเล็กลง");
       return;
     }
 
@@ -137,6 +139,7 @@
         avatar = data.url;
         uploadIsSuccess = true;
         uploadMessage = `✓ บันทึกรูปภาพลงเซิร์ฟเวอร์เรียบร้อย (${data.filename})`;
+        toast.success("อัปโหลดรูปภาพเรียบร้อยแล้ว");
       } else {
         throw new Error(data.message || "การอัปโหลดไฟล์ล้มเหลว");
       }
@@ -144,7 +147,7 @@
       console.error("Upload failed:", err);
       uploadIsSuccess = false;
       uploadMessage = "เกิดข้อผิดพลาดในการอัปโหลด: " + (err as Error).message;
-      alert("ไม่สามารถอัปโหลดรูปภาพได้: " + (err as Error).message);
+      toast.error("ไม่สามารถอัปโหลดรูปภาพได้: " + (err as Error).message);
     } finally {
       isUploading = false;
     }
@@ -172,6 +175,7 @@
     avatar = undefined;
     imageUrlInput = "";
     uploadMessage = "";
+    toast.info("ลบรูปโปรไฟล์ออกแล้ว");
   }
 
   function applyImageUrl() {
@@ -180,13 +184,14 @@
       avatar = trimmed;
       uploadIsSuccess = true;
       uploadMessage = "✓ ใช้งานรูปภาพจากลิงก์ URL เรียบร้อย";
+      toast.info("ใช้งานรูปภาพจากลิงก์ URL แล้ว");
     }
   }
 
   function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
     if (!name.trim() || !role.trim()) {
-      alert("กรุณากรอกชื่อและตำแหน่งงาน");
+      toast.error("กรุณากรอกชื่อและตำแหน่งงาน");
       return;
     }
 
@@ -229,6 +234,13 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="edit-modal-title"
+    tabindex="-1"
+    onclick={(e) => {
+      if (e.target === e.currentTarget) onclose();
+    }}
+    onkeydown={(e) => {
+      if (e.key === "Escape") onclose();
+    }}
   >
     <div
       class="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 sm:p-7 shadow-2xl animate-in zoom-in-95 duration-200"
@@ -298,10 +310,10 @@
                   <span class="text-[8px] mt-1 text-slate-600 font-medium">กำลังบันทึก...</span>
                 </div>
               {:else if avatar}
-                <img
+                <AvatarImage
                   src={avatar}
                   alt="Avatar Preview"
-                  class="size-full object-cover"
+                  class="size-full"
                 />
               {:else}
                 <div class="flex flex-col items-center text-slate-400">

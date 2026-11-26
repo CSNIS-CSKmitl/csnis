@@ -9,8 +9,10 @@
     Sparkles,
     CheckCircle2,
     X,
+    Copy,
   } from "lucide-svelte";
   import type { Service } from "$lib/data/services";
+  import { toast } from "$lib/toast";
 
   let {
     service,
@@ -39,13 +41,23 @@
       isOverlayPinned = false;
     }
   }
+
+  async function copyServiceUrl(e: MouseEvent) {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(service.repository);
+      toast.success(`คัดลอกลิงก์ ${service.name} เรียบร้อยแล้ว`);
+    } catch {
+      toast.error("ไม่สามารถคัดลอกลิงก์ได้");
+    }
+  }
 </script>
 
 <svelte:window onkeydown={handleKeyDown} />
 
 <article
   id={service.id}
-  class="panel service-card relative flex flex-col justify-between p-6 sm:p-7 rounded-2xl border border-slate-200/90 bg-white transition-all duration-300 hover:bg-zinc-600/5 hover:shadow-xl hover:bg-zinc-300/5 min-h-[440px] overflow-hidden"
+  class="panel service-card relative flex flex-col justify-between p-6 sm:p-7 rounded-2xl border border-slate-200/90 bg-white transition-all duration-300 hover:border-slate-300 hover:shadow-xl min-h-[440px] overflow-hidden"
   role="region"
   aria-label={`บริการ ${service.name}`}
   onmouseenter={() => (isHovered = true)}
@@ -219,16 +231,29 @@
     <div
       class="relative z-10 pt-3 border-t border-[#E8E1D5] flex flex-col gap-1.5"
     >
-      <a
-        href={service.repository}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-xs transition-all"
-      >
-        <Globe size={14} />
-        <span>เข้าสู่ระบบ {service.name}</span>
-        <ArrowUpRight size={14} />
-      </a>
+      <div class="flex items-center gap-2">
+        <a
+          href={service.repository}
+          target="_blank"
+          rel="noopener noreferrer"
+          onclick={() => toast.info(`กำลังเปิด ${service.name}...`)}
+          class="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-xs transition-all"
+        >
+          <Globe size={14} />
+          <span>เข้าสู่ระบบ {service.name}</span>
+          <ArrowUpRight size={14} />
+        </a>
+
+        <button
+          type="button"
+          onclick={copyServiceUrl}
+          class="shrink-0 py-2.5 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+          title="คัดลอกลิงก์บริการ"
+          aria-label={`คัดลอกลิงก์ ${service.name}`}
+        >
+          <Copy size={14} />
+        </button>
+      </div>
 
       {#if isOverlayPinned}
         <button

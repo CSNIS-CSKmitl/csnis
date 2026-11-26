@@ -35,6 +35,7 @@
     Award,
     Calendar,
     Undo2,
+    Copy,
   } from "lucide-svelte";
   import {
     initialOrgChart,
@@ -49,6 +50,8 @@
     findParentNode,
   } from "$lib/data/orgChart";
   import OrgNodeEditModal from "./OrgNodeEditModal.svelte";
+  import AvatarImage from "$lib/components/ui/AvatarImage.svelte";
+  import { toast } from "$lib/toast";
 
   const STORAGE_KEY = "csnis_custom_org_chart_v1";
 
@@ -57,6 +60,7 @@
   let retiredMembers = $state<OrgNode[]>(initialRetiredMembers);
   let hasUnsavedChanges = $state(false);
   let isSaving = $state(false);
+  let isLoadingChart = $state(true);
 
   // Active view: 'tree' | 'grid' | 'retired'
   let viewMode = $state<"tree" | "grid" | "retired">("tree");
@@ -106,6 +110,8 @@
       }
     } catch {
       /* Fallback to localStorage */
+    } finally {
+      isLoadingChart = false;
     }
 
     // Try localStorage if server fetch failed or offline
@@ -162,14 +168,12 @@
       if (res.ok && result.success) {
         hasUnsavedChanges = false;
         saveToLocalStorage({ chart, retiredMembers });
-        alert(
-          "บันทึกผังโครงสร้างการบริหารลงบนเซิร์ฟเวอร์ (Server JSON) เรียบร้อยแล้ว!",
-        );
+        toast.success("บันทึกผังโครงสร้างการบริหารลงเซิร์ฟเวอร์เรียบร้อยแล้ว");
       } else {
-        alert(result.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+        toast.error(result.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
       }
     } catch (err) {
-      alert("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้: " + (err as Error).message);
+      toast.error("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้: " + (err as Error).message);
     } finally {
       isSaving = false;
     }
@@ -195,12 +199,12 @@
           retiredMembers = result.data.retiredMembers;
           hasUnsavedChanges = false;
           saveToLocalStorage({ chart, retiredMembers });
-          alert("รีเซ็ตผังการบริหารเป็นค่าเริ่มต้นบนเซิร์ฟเวอร์สำเร็จ!");
+          toast.success("รีเซ็ตผังการบริหารเป็นค่าเริ่มต้นสำเร็จ");
         } else {
-          alert("เกิดข้อผิดพลาดในการรีเซ็ตผัง");
+          toast.error("เกิดข้อผิดพลาดในการรีเซ็ตผัง");
         }
       } catch {
-        alert("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์เพื่อรีเซ็ตได้");
+        toast.error("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์เพื่อรีเซ็ตได้");
       } finally {
         isSaving = false;
       }
@@ -225,6 +229,7 @@
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
+    toast.success("ส่งออกไฟล์ผังการบริหาร (JSON) เรียบร้อยแล้ว");
   }
 
   function handleImportJson(file: File) {
@@ -234,7 +239,7 @@
         const content = e.target?.result as string;
         const parsed = JSON.parse(content);
         if (!parsed.chart || !Array.isArray(parsed.retiredMembers)) {
-          alert(
+          toast.error(
             'รูปแบบไฟล์ JSON ไม่ถูกต้อง: จำเป็นต้องมีโครงสร้าง "chart" และ "retiredMembers"',
           );
           return;
@@ -249,12 +254,12 @@
           retiredMembers = parsed.retiredMembers;
           hasUnsavedChanges = true;
           saveToLocalStorage({ chart, retiredMembers });
-          alert(
-            'นำเข้าข้อมูลสำเร็จ! กรุณากดปุ่ม "บันทึกลงเซิร์ฟเวอร์" เพื่อบันทึกลงไฟล์ server JSON',
+          toast.success(
+            'นำเข้าข้อมูลสำเร็จ! กรุณากด "บันทึกลงเซิร์ฟเวอร์" เพื่อยืนยัน',
           );
         }
       } catch (err) {
-        alert("ไฟล์ JSON เสียหายหรือไม่ถูกต้อง: " + (err as Error).message);
+        toast.error("ไฟล์ JSON เสียหายหรือไม่ถูกต้อง: " + (err as Error).message);
       }
     };
     reader.readAsText(file);
@@ -285,6 +290,7 @@
         isEditMode = true;
         showPinModal = false;
         pin = "";
+        toast.success("ปลดล็อกโหมดแก้ไขผังบริหารแล้ว");
       } else {
         pinError =
           data.message || "Admin PIN ไม่ถูกต้อง (รหัสเริ่มต้นคือ 1234)";
@@ -317,7 +323,7 @@
         retiredMembers = retiredMembers.filter((m) => m.id !== targetId);
       } else {
         if (chart.id === targetId) {
-          alert("ไม่สามารถลบตำแหน่งสูงสุดของผังบริหารได้");
+          toast.error("ไม่สามารถลบตำแหน่งสูงสุดของผังบริหารได้");
           return;
         }
         chart = deleteNodeFromTree(chart, targetId);
@@ -337,11 +343,14 @@
         });
         if (res.ok) {
           hasUnsavedChanges = false;
+          toast.success("ลบข้อมูลสมาชิกเรียบร้อยแล้ว");
         } else {
           hasUnsavedChanges = true;
+          toast.error("ลบข้อมูลในเครื่องแล้ว แต่ไม่สามารถบันทึกลงเซิร์ฟเวอร์ได้");
         }
       } catch {
         hasUnsavedChanges = true;
+        toast.error("ลบข้อมูลในเครื่องแล้ว แต่ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
       }
     }
   }
@@ -381,11 +390,23 @@
       });
       if (res.ok) {
         hasUnsavedChanges = false;
+        toast.success(`บันทึกข้อมูล "${updated.name}" เรียบร้อยแล้ว`);
       } else {
         hasUnsavedChanges = true;
+        toast.error("บันทึกข้อมูลในเครื่องแล้ว แต่เซิร์ฟเวอร์ปฏิเสธการบันทึก");
       }
     } catch {
       hasUnsavedChanges = true;
+      toast.error("บันทึกข้อมูลในเครื่องแล้ว แต่ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+    }
+  }
+
+  async function copyEmail(email: string) {
+    try {
+      await navigator.clipboard.writeText(email);
+      toast.success(`คัดลอกอีเมล ${email} แล้ว`);
+    } catch {
+      toast.error("ไม่สามารถคัดลอกอีเมลได้");
     }
   }
 
@@ -810,9 +831,62 @@
   </div>
 
   <!-- ======================================================== -->
-  <!-- 1. TREE VIEW -->
+  <!-- 0. LOADING SKELETON -->
   <!-- ======================================================== -->
-  {#if viewMode === "tree"}
+  {#if isLoadingChart}
+    <div
+      class="rounded-2xl border border-slate-200 bg-slate-50/60 p-6 sm:p-8"
+      aria-busy="true"
+      aria-label="กำลังโหลดผังโครงสร้างการบริหาร"
+    >
+      <div class="flex flex-col items-center gap-6 animate-pulse">
+        <!-- Root Node Skeleton -->
+        <div class="w-full max-w-[360px] rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
+          <div class="flex justify-between">
+            <div class="h-4 w-28 rounded-full bg-slate-200"></div>
+            <div class="h-4 w-16 rounded-full bg-slate-200"></div>
+          </div>
+          <div class="flex items-center gap-3 pt-1">
+            <div class="size-11 rounded-xl bg-slate-200 shrink-0"></div>
+            <div class="flex-1 space-y-2">
+              <div class="h-4 w-3/4 rounded bg-slate-200"></div>
+              <div class="h-3 w-1/2 rounded bg-slate-200"></div>
+            </div>
+          </div>
+          <div class="h-3 w-full rounded bg-slate-100 pt-2"></div>
+        </div>
+
+        <div class="h-6 w-0.5 bg-slate-200"></div>
+
+        <!-- 3 Division Skeletons -->
+        <div class="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {#each [1, 2, 3] as _}
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+              <div class="flex justify-between">
+                <div class="h-4 w-20 rounded-full bg-slate-200"></div>
+                <div class="h-3 w-14 rounded bg-slate-200"></div>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <div class="size-9 rounded-lg bg-slate-200 shrink-0"></div>
+                <div class="flex-1 space-y-1.5">
+                  <div class="h-3.5 w-3/4 rounded bg-slate-200"></div>
+                  <div class="h-3 w-1/2 rounded bg-slate-200"></div>
+                </div>
+              </div>
+              <div class="flex gap-1.5 pt-2 border-t border-slate-100">
+                <div class="h-4 w-14 rounded bg-slate-100"></div>
+                <div class="h-4 w-16 rounded bg-slate-100"></div>
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 1. TREE VIEW -->
+    <!-- ======================================================== -->
+  {:else if viewMode === "tree"}
     <div
       class="tree-canvas-wrapper relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/60 p-4 shadow-inner sm:p-8"
     >
@@ -899,10 +973,10 @@
                 <!-- Main Title & Role -->
                 <div class="mt-3.5 flex items-start gap-3">
                   {#if chart.avatar}
-                    <img
+                    <AvatarImage
                       src={chart.avatar}
                       alt={chart.name}
-                      class="size-11 shrink-0 rounded-xl object-cover border-2 border-white shadow-sm ring-1 ring-slate-200"
+                      class="size-11 shrink-0 rounded-xl border-2 border-white shadow-sm ring-1 ring-slate-200"
                     />
                   {:else}
                     <div
@@ -1032,10 +1106,10 @@
                         <!-- Role & Name -->
                         <div class="mt-2.5 flex items-start gap-2.5">
                           {#if division.avatar}
-                            <img
+                            <AvatarImage
                               src={division.avatar}
                               alt={division.name}
-                              class="size-9 shrink-0 rounded-lg object-cover border border-white shadow-xs ring-1 ring-slate-200"
+                              class="size-9 shrink-0 rounded-lg border border-white shadow-xs ring-1 ring-slate-200"
                             />
                           {:else}
                             <div
@@ -1165,10 +1239,10 @@
 
                               <div class="mt-2 flex items-start gap-2">
                                 {#if specialist.avatar}
-                                  <img
+                                  <AvatarImage
                                     src={specialist.avatar}
                                     alt={specialist.name}
-                                    class="size-7 shrink-0 rounded-md object-cover border border-white shadow-2xs"
+                                    class="size-7 shrink-0 rounded-md border border-white shadow-2xs"
                                   />
                                 {:else}
                                   <div
@@ -1269,10 +1343,10 @@
               <!-- Title & Role -->
               <div class="mt-3.5 flex items-start gap-3">
                 {#if node.avatar}
-                  <img
+                  <AvatarImage
                     src={node.avatar}
                     alt={node.name}
-                    class="size-10 shrink-0 rounded-xl object-cover border-2 border-white shadow-xs ring-1 ring-slate-200"
+                    class="size-10 shrink-0 rounded-xl border-2 border-white shadow-xs ring-1 ring-slate-200"
                   />
                 {:else}
                   <div
@@ -1435,10 +1509,10 @@
                 <!-- Name & Role -->
                 <div class="mt-4 flex items-start gap-3">
                   {#if ret.avatar}
-                    <img
+                    <AvatarImage
                       src={ret.avatar}
                       alt={ret.name}
-                      class="size-12 shrink-0 rounded-xl object-cover border-2 border-white shadow-xs ring-1 ring-slate-200"
+                      class="size-12 shrink-0 rounded-xl border-2 border-white shadow-xs ring-1 ring-slate-200"
                     />
                   {:else}
                     <div
@@ -1550,6 +1624,21 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="pin-modal-title"
+    tabindex="-1"
+    onclick={(e) => {
+      if (e.target === e.currentTarget) {
+        showPinModal = false;
+        pin = "";
+        pinError = "";
+      }
+    }}
+    onkeydown={(e) => {
+      if (e.key === "Escape") {
+        showPinModal = false;
+        pin = "";
+        pinError = "";
+      }
+    }}
   >
     <div
       class="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-200"
@@ -1654,9 +1743,16 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="modal-title"
+    tabindex="-1"
+    onclick={(e) => {
+      if (e.target === e.currentTarget) closeModal();
+    }}
+    onkeydown={(e) => {
+      if (e.key === "Escape") closeModal();
+    }}
   >
     <div
-      class="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 sm:p-7 shadow-2xl animate-in zoom-in-95 duration-200"
+      class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 sm:p-7 shadow-2xl animate-in zoom-in-95 duration-200"
     >
       <!-- Close Button -->
       <button
@@ -1671,10 +1767,10 @@
       <!-- Header with Icon & Department -->
       <div class="flex items-start gap-3.5 pr-8">
         {#if selectedNode.avatar}
-          <img
+          <AvatarImage
             src={selectedNode.avatar}
             alt={selectedNode.name}
-            class="size-14 shrink-0 rounded-2xl object-cover border-2 border-white shadow-sm ring-1 ring-slate-200"
+            class="size-14 shrink-0 rounded-2xl border-2 border-white shadow-sm ring-1 ring-slate-200"
           />
         {:else}
           <div
@@ -1721,12 +1817,23 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2 text-slate-700">
-          <Mail size={15} class="text-slate-500 shrink-0" />
-          <div class="truncate">
-            <span class="block text-[10px] text-slate-400">อีเมลติดต่อ</span>
-            <span class="font-medium truncate block">{selectedNode.email}</span>
+        <div class="flex items-center justify-between gap-2 text-slate-700">
+          <div class="flex items-center gap-2 min-w-0">
+            <Mail size={15} class="text-slate-500 shrink-0" />
+            <div class="truncate">
+              <span class="block text-[10px] text-slate-400">อีเมลติดต่อ</span>
+              <span class="font-medium truncate block">{selectedNode.email}</span>
+            </div>
           </div>
+          <button
+            type="button"
+            onclick={() => selectedNode && copyEmail(selectedNode.email)}
+            class="shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-slate-200/70 hover:text-slate-700 transition-colors cursor-pointer"
+            title="คัดลอกอีเมล"
+            aria-label="คัดลอกอีเมล"
+          >
+            <Copy size={13} />
+          </button>
         </div>
       </div>
 

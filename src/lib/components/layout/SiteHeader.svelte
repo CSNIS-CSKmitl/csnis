@@ -1,8 +1,9 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { afterNavigate } from "$app/navigation";
-  import { Network, Menu, X, ArrowUpRight } from "lucide-svelte";
+  import { Network, Menu, X } from "lucide-svelte";
   import { Button } from "$lib/components/ui/button";
+
   let menuOpen = $state(false);
   const links = [
     { href: "/", label: "Home" },
@@ -11,6 +12,13 @@
     { href: "/topology/", label: "Live Topology" },
     { href: "/contact/", label: "Contact" },
   ];
+
+  function isActivePath(currentPath: string, href: string): boolean {
+    const normCurrent = currentPath === "/" ? "/" : currentPath.replace(/\/+$/, "");
+    const normHref = href === "/" ? "/" : href.replace(/\/+$/, "");
+    return normCurrent === normHref;
+  }
+
   afterNavigate(() => {
     menuOpen = false;
   });
@@ -18,7 +26,7 @@
 
 <a class="skip-link" href="#main">Skip to content</a>
 
-<header>
+<header class="sticky top-0 z-40">
   <div class="container nav-inner">
     <a href="/" class="brand" aria-label="CSNIS Home">
       <span class="brand-icon">
@@ -39,7 +47,7 @@
       {#each links as link (link.href)}
         <a
           href={link.href}
-          aria-current={page.url.pathname === link.href ? "page" : undefined}
+          aria-current={isActivePath(page.url.pathname, link.href) ? "page" : undefined}
         >
           {link.label}
         </a>
@@ -69,7 +77,7 @@
     border-bottom: 1px solid #e2e8f0;
     position: sticky;
     top: 0;
-    z-index: 30;
+    z-index: 40;
   }
   .nav-inner {
     min-height: 86px;
@@ -113,9 +121,12 @@
   }
   nav a {
     font-size: 0.875rem;
+    font-weight: 500;
     color: #64748b;
     padding-block: 31px;
     border-bottom: 2px solid transparent;
+    transition: color 150ms ease, border-color 150ms ease;
+    white-space: nowrap;
   }
   nav a:hover,
   nav a[aria-current] {
@@ -142,9 +153,6 @@
     nav {
       gap: 17px;
     }
-    .support {
-      display: none;
-    }
   }
   @media (max-width: 760px) {
     .nav-inner {
@@ -162,12 +170,13 @@
       background: white;
       padding: 16px 24px;
       border-bottom: 1px solid #e2e8f0;
+      box-shadow: 0 10px 25px -10px rgba(15, 23, 42, 0.12);
     }
     nav.open {
       display: flex;
       flex-direction: column;
       align-items: stretch;
-      gap: 0;
+      gap: 4px;
     }
     nav a {
       padding: 12px;
