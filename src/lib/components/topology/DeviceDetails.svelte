@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
   import type { NetworkDevice, DeviceKind } from "$lib/monitoring/types";
   import StatusBadge from "./StatusBadge.svelte";
   import {
@@ -14,13 +14,19 @@
   } from "lucide-svelte";
   import { toast } from "$lib/toast";
 
+  import type { DeviceUptimeStat, OfflineIncident } from "$lib/monitoring-stats";
+
   let {
     device,
+    deviceStat,
+    deviceIncidents = [],
     editMode = false,
     onupdate,
     ondelete,
   }: {
     device: NetworkDevice | undefined;
+    deviceStat?: DeviceUptimeStat;
+    deviceIncidents?: OfflineIncident[];
     editMode?: boolean;
     onupdate?: (updated: NetworkDevice) => void;
     ondelete?: (id: string) => void;
@@ -117,7 +123,7 @@
 
 <section class="panel p-6" aria-label="Device details">
   <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">
+    <h3 class="text-xs font-bold text-slate-500">
       Device Diagnostics
     </h3>
     {#if device && editMode}
@@ -320,11 +326,29 @@
         </div>
         <div class="flex justify-between">
           <dt class="muted">Response time</dt>
-          <dd class="font-medium text-slate-800">{device.latency} ms</dd>
+          <dd class="font-medium text-slate-800">
+            {device.latency} ms
+            {#if deviceStat && deviceStat.totalSamples > 1}
+              <span class="text-slate-400 font-normal">
+                (avg {deviceStat.avgLatencyMs} ms)
+              </span>
+            {/if}
+          </dd>
         </div>
         <div class="flex justify-between">
           <dt class="muted">Utilization</dt>
           <dd class="font-medium text-slate-800">{device.utilization}%</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="muted">Uptime rate</dt>
+          <dd class="font-semibold text-emerald-700">
+            {deviceStat ? `${deviceStat.uptimePct}%` : device.status === "online" ? "100%" : "0%"}
+            {#if deviceStat && deviceStat.totalSamples > 0}
+              <span class="text-slate-400 font-normal">
+                ({deviceStat.onlineSamples}/{deviceStat.totalSamples} samples)
+              </span>
+            {/if}
+          </dd>
         </div>
       </dl>
 
@@ -338,6 +362,31 @@
         value={device.utilization}
         aria-label={`${device.name} utilization`}>{device.utilization}%</meter
       >
+
+      {#if deviceIncidents.length > 0}
+        <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50/70 p-2.5 text-xs">
+          <div class="font-semibold text-amber-900 mb-1">
+            ประวัติออฟไลน์ล่าสุด ({deviceIncidents.length})
+          </div>
+          <ul class="space-y-1 text-[11px] text-amber-800">
+            {#each deviceIncidents.slice(0, 3) as inc (inc.id)}
+              <li class="flex items-center justify-between gap-2">
+                <span class="font-mono">
+                  {new Date(inc.startedAt).toLocaleTimeString("th-TH", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+                <span>
+                  {inc.ongoing
+                    ? "กำลังออฟไลน์"
+                    : `นาน ${Math.max(1, Math.round(inc.durationMs / 60000))} นาที`}
+                </span>
+              </li>
+            {/each}
+          </ul>
+        </div>
+      {/if}
 
       <!-- Diagnostic Section -->
       <div class="mt-5 pt-4 border-t border-slate-100">
@@ -358,7 +407,7 @@
           >
             <Activity
               size={14}
-              class={pinging ? "animate-pulse text-blue-600" : "text-slate-600"}
+              class={pinging ? " text-blue-600" : "text-slate-600"}
             />
             {pinging ? "Pinging target…" : "Run Live Ping Test"}
           </button>

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { afterNavigate } from "$app/navigation";
-  import { Network, Menu, X } from "lucide-svelte";
+  import { Menu, X } from "lucide-svelte";
   import { Button } from "$lib/components/ui/button";
 
   let menuOpen = $state(false);
@@ -29,9 +29,13 @@
 <header class="sticky top-0 z-40">
   <div class="container nav-inner">
     <a href="/" class="brand" aria-label="CSNIS Home">
-      <span class="brand-icon">
-        <Network size={24} />
-      </span>
+      <img
+        src="/logocs.png"
+        alt="CS KMITL Logo"
+        loading="lazy"
+        decoding="async"
+        class="brand-logo"
+      />
 
       <span>
         <strong
@@ -92,14 +96,11 @@
     gap: 11px;
     flex-shrink: 0;
   }
-  .brand-icon {
-    color: white;
-    background: #1d4ed8;
+  .brand-logo {
     width: 43px;
     height: 43px;
-    border-radius: 11px;
-    display: grid;
-    place-items: center;
+    object-fit: contain;
+    flex-shrink: 0;
   }
   .brand strong {
     font-size: 1.3rem;

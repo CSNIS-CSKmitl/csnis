@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
   import {
     RefreshCw,
     Lock,
@@ -61,7 +61,7 @@
     >
       <span class="relative flex h-2 w-2">
         <span
-          class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+          class=" absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
         ></span>
         <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"
         ></span>
@@ -72,7 +72,7 @@
     <!-- Admin Edit Lock / Unlock Button -->
     <button
       onclick={() => onToggleAdmin?.()}
-      class="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-all cursor-pointer {editMode
+      class="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors cursor-pointer {editMode
         ? 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200'
         : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'}"
       title={editMode
@@ -90,7 +90,7 @@
 
     {#if hasUnsavedChanges}
       <span
-        class="inline-flex items-center gap-1 text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full animate-pulse"
+        class="inline-flex items-center gap-1 text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full"
       >
         ● มีรายการแก้ไขที่ยังไม่ได้บันทึก
       </span>
@@ -151,8 +151,8 @@
       {#if onSaveLayout}
         <Button
           variant="default"
-          class="h-9 gap-1.5 text-xs font-medium shadow-xs transition-all cursor-pointer {hasUnsavedChanges
-            ? 'bg-amber-600 hover:bg-amber-700 text-white animate-pulse ring-2 ring-amber-400 font-bold'
+          class="h-9 gap-1.5 text-xs font-medium shadow-xs transition-colors cursor-pointer {hasUnsavedChanges
+            ? 'bg-amber-600 hover:bg-amber-700 text-white ring-2 ring-amber-400 font-bold'
             : 'bg-emerald-600 hover:bg-emerald-700 text-white'}"
           onclick={() => onSaveLayout?.()}
         >

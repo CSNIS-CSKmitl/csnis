@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
   import NetworkSummary from "$lib/components/topology/NetworkSummary.svelte";
   import ConnectionsTable from "$lib/components/topology/ConnectionsTable.svelte";
   import { onMount } from "svelte";
@@ -23,6 +23,11 @@
   import { createApiProvider } from "$lib/monitoring/api";
   import { createPoller } from "$lib/monitoring/poller";
   import { toast } from "$lib/toast";
+  import {
+    computeMonitoringStats,
+    type DeviceFilter,
+    type StatsTimeRange,
+  } from "$lib/monitoring-stats";
   import type {
     NetworkSnapshot,
     NetworkDevice,
@@ -35,6 +40,8 @@
   let busy = $state(false);
   let error = $state("");
   let providerMode = $state<"mock" | "api">("api");
+  let timeRange = $state<StatsTimeRange>("today");
+  let activeFilter = $state<DeviceFilter>("all");
   let editMode = $state(false);
   let fullWidth = $state(false);
   let hasUnsavedChanges = $state(false);
@@ -46,6 +53,21 @@
   let poller: ReturnType<typeof createPoller> | undefined;
   let selectedDevice = $derived(
     snapshot?.devices.find((d) => d.id === selected),
+  );
+  let currentStats = $derived(
+    snapshot
+      ? snapshot.stats && snapshot.stats.range === timeRange
+        ? snapshot.stats
+        : computeMonitoringStats(snapshot, snapshot.samples ?? [], timeRange)
+      : null,
+  );
+  let selectedDeviceStat = $derived(
+    selected && currentStats ? currentStats.deviceStats[selected] : undefined,
+  );
+  let selectedDeviceIncidents = $derived(
+    selected && currentStats
+      ? currentStats.offlineHistory.filter((inc) => inc.deviceId === selected)
+      : [],
   );
 
   function selectDevice(id: string) {
@@ -320,8 +342,8 @@
     poller?.dispose();
     const provider =
       mode === "api"
-        ? createApiProvider(() => "/api/monitoring")
-        : createMockProvider();
+        ? createApiProvider(() => `/api/monitoring?range=${timeRange}`)
+        : createMockProvider(() => timeRange);
     poller = createPoller(provider, {
       snapshot: (data) => {
         if (isSaving || editMode || hasUnsavedChanges) return;
@@ -336,6 +358,11 @@
     if (!editMode) {
       void poller.refresh();
     }
+  }
+
+  function handleRangeChange(nextRange: StatsTimeRange) {
+    timeRange = nextRange;
+    void poller?.refresh();
   }
 
   function handleProviderChange(newMode: "mock" | "api") {
@@ -459,17 +486,46 @@
   {#if error}
     <div
       role="alert"
-      class="mb-5 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800"
+      class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800"
     >
-      Unable to refresh. {snapshot
-        ? "Showing the last successful snapshot."
-        : ""}
-      {error} Use Refresh now to retry.
+      <div>
+        <strong>โหลดข้อมูลไม่ได้ (Unable to refresh):</strong>
+        {snapshot ? "กำลังแสดงข้อมูลล่าสุดที่โหลดสำเร็จ · " : ""}
+        {error}
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          onclick={() => void poller?.refresh()}
+          class="rounded-md border border-red-300 bg-white px-3 py-1 text-xs font-semibold text-red-800 hover:bg-red-100"
+        >
+          ลองใหม่ (Refresh)
+        </button>
+        {#if providerMode === "api"}
+          <button
+            type="button"
+            onclick={() => handleProviderChange("mock")}
+            class="rounded-md bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700"
+          >
+            สลับโหมดจำลอง (Demo Snapshot)
+          </button>
+        {/if}
+      </div>
     </div>
   {/if}
 
   {#if snapshot}
-    <NetworkSummary {snapshot} />
+    <NetworkSummary
+      {snapshot}
+      {timeRange}
+      {activeFilter}
+      {busy}
+      {autoRefresh}
+      onRangeChange={handleRangeChange}
+      onFilterChange={(filter) => (activeFilter = filter)}
+      onSelectDevice={selectDevice}
+      onRefresh={() => void poller?.refresh()}
+    />
 
     <div class="topology-layout" class:full-width={fullWidth}>
       <section class="panel overflow-hidden">
@@ -493,7 +549,7 @@
             <!-- Full Width Toggle Button (ขยายเต็มหน้าจอซ้าย-ขวา) -->
             <button
               onclick={() => (fullWidth = !fullWidth)}
-              class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium transition-all cursor-pointer shadow-xs"
+              class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium transition-colors cursor-pointer shadow-xs"
               title={fullWidth
                 ? "ย่อพื้นที่กลับเป็นขนาดมาตรฐาน"
                 : "ขยายพื้นที่แผนผังเต็มความกว้างซ้าย-ขวา (Full Width)"}
@@ -514,11 +570,6 @@
                 <Unlock size={12} class="text-amber-700" />
                 Admin Edit Mode
               </span>
-            {:else}
-              <!-- <span class="inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-0.5 rounded-full font-medium">
-                <Lock size={12} class="text-slate-500" />
-                Read-Only
-              </span> -->
             {/if}
           </div>
         </div>
@@ -538,36 +589,38 @@
             No devices are available from the monitoring source.
           </p>
         {/if}
-        <!-- 
-        <div class="map-footer">
-          <div class="flex flex-wrap gap-2">
-            <StatusBadge status="online" />
-            <StatusBadge status="offline" />
-          </div>
-          <time class="text-xs muted" datetime={snapshot.timestamp}>
-            Last refresh {new Date(snapshot.timestamp).toLocaleTimeString(
-              "en-GB",
-            )}
-          </time>
-        </div> -->
       </section>
 
       <aside class="space-y-5">
         <DeviceDetails
           device={selectedDevice}
+          deviceStat={selectedDeviceStat}
+          deviceIncidents={selectedDeviceIncidents}
           {editMode}
           onupdate={handleUpdateDevice}
           ondelete={handleDeleteDevice}
         />
-        <RecentEvents events={snapshot.events} />
+        <RecentEvents
+          events={snapshot.events}
+          offlineHistory={currentStats?.offlineHistory ?? []}
+        />
       </aside>
     </div>
-    <!--     -->
 
-    <ConnectionsTable {snapshot} />
+    <ConnectionsTable
+      {snapshot}
+      {activeFilter}
+      {timeRange}
+      onSelectDevice={selectDevice}
+    />
   {:else if error}
     <div class="panel p-16 text-center muted" role="status">
-      Network data is unavailable. Use Refresh now to retry.
+      <p class="font-semibold text-red-700">
+        โหลดข้อมูลไม่ได้ — Network data is unavailable.
+      </p>
+      <p class="mt-2 text-xs text-slate-600">
+        กรุณาตรวจสอบสิทธิ์การเข้าถึงหรือกดปุ่ม Refresh เพื่อลองใหม่อีกครั้ง
+      </p>
     </div>
   {:else}
     <!-- Pulsing Shimmer Loading Skeleton -->

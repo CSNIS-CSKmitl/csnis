@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
   import { onMount } from "svelte";
   import {
     Network,
@@ -540,7 +540,7 @@
   >
     <div>
       <div
-        class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5"
+        class="flex items-center gap-1.5 text-xs font-bold text-slate-500 mb-1.5"
       >
         <GitFork size={15} />
         Management Structure
@@ -568,7 +568,7 @@
       {#if !isEditMode}
         <button
           type="button"
-          class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:border-slate-400 transition-all cursor-pointer"
+          class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:border-slate-400 transition-colors cursor-pointer"
           onclick={() => (showPinModal = true)}
           title="ปลดล็อกเพื่อแก้ไขผังการบริหาร (ใช้รหัสผ่านเดียวกับ Topology)"
         >
@@ -598,7 +598,7 @@
       >
         <button
           type="button"
-          class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer {viewMode ===
+          class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer {viewMode ===
           'tree'
             ? 'bg-white text-slate-900 shadow-xs font-bold'
             : 'text-slate-600 hover:text-slate-900'}"
@@ -610,7 +610,7 @@
 
         <button
           type="button"
-          class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer {viewMode ===
+          class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer {viewMode ===
           'grid'
             ? 'bg-white text-slate-900 shadow-xs font-bold'
             : 'text-slate-600 hover:text-slate-900'}"
@@ -622,7 +622,7 @@
 
         <button
           type="button"
-          class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer {viewMode ===
+          class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer {viewMode ===
           'retired'
             ? 'bg-white text-slate-900 shadow-xs font-bold'
             : 'text-slate-600 hover:text-slate-900'}"
@@ -681,7 +681,7 @@
         <!-- Save to Server Button -->
         <button
           type="button"
-          class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+          class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
           onclick={handleSaveServer}
           disabled={isSaving}
         >
@@ -764,7 +764,7 @@
     <div class="flex flex-wrap items-center gap-1.5">
       <button
         type="button"
-        class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer {selectedCategory ===
+        class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer {selectedCategory ===
         'all'
           ? 'bg-slate-900 text-white font-semibold shadow-xs'
           : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'}"
@@ -775,7 +775,7 @@
 
       <button
         type="button"
-        class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer {selectedCategory ===
+        class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer {selectedCategory ===
         'executive'
           ? 'bg-slate-900 text-white font-semibold shadow-xs'
           : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'}"
@@ -786,7 +786,7 @@
 
       <button
         type="button"
-        class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer {selectedCategory ===
+        class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer {selectedCategory ===
         'network'
           ? 'bg-slate-900 text-white font-semibold shadow-xs'
           : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'}"
@@ -797,7 +797,7 @@
 
       <button
         type="button"
-        class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer {selectedCategory ===
+        class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer {selectedCategory ===
         'systems'
           ? 'bg-slate-900 text-white font-semibold shadow-xs'
           : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'}"
@@ -808,7 +808,7 @@
 
       <button
         type="button"
-        class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer {selectedCategory ===
+        class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer {selectedCategory ===
         'services'
           ? 'bg-slate-900 text-white font-semibold shadow-xs'
           : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'}"
@@ -819,7 +819,7 @@
 
       <button
         type="button"
-        class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer {selectedCategory ===
+        class="rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer {selectedCategory ===
         'retired'
           ? 'bg-slate-900 text-white font-semibold shadow-xs'
           : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'}"
@@ -951,7 +951,7 @@
             <div class="relative group">
               <button
                 type="button"
-                class="tree-node-card relative flex w-[360px] flex-col rounded-2xl border {rootCfg.border} {rootCfg.bg} p-5 text-left shadow-md transition-all duration-300 hover:scale-102 hover:shadow-xl cursor-pointer"
+                class="tree-node-card relative flex w-[360px] flex-col rounded-2xl border {rootCfg.border} {rootCfg.bg} p-5 text-left shadow-md transition-colors duration-300 hover:scale-102 hover:shadow-xl cursor-pointer"
                 onclick={() => selectNode(chart)}
               >
                 <!-- Top Badge -->
@@ -964,7 +964,7 @@
                   </span>
 
                   <span
-                    class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 uppercase tracking-wide border border-slate-200"
+                    class="rounded-md bg-[var(--raised)] px-2 py-0.5 text-[11px] font-medium text-[var(--text-secondary)] border border-[var(--border)]"
                   >
                     {chart.badge}
                   </span>
@@ -1084,7 +1084,7 @@
                     <div class="relative group">
                       <button
                         type="button"
-                        class="tree-node-card relative flex w-[265px] flex-col rounded-2xl border {divCfg.border} {divCfg.bg} p-4 text-left shadow-xs transition-all duration-300 hover:scale-102 hover:shadow-lg cursor-pointer"
+                        class="tree-node-card relative flex w-[265px] flex-col rounded-2xl border {divCfg.border} {divCfg.bg} p-4 text-left shadow-xs transition-colors duration-300 hover:scale-102 hover:shadow-lg cursor-pointer"
                         onclick={() => selectNode(division)}
                       >
                         <!-- Top Badge -->
@@ -1221,7 +1221,7 @@
                           <div class="relative group">
                             <button
                               type="button"
-                              class="relative flex w-[265px] flex-col rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-2xs transition-all duration-200 hover:border-slate-400 hover:shadow-md cursor-pointer"
+                              class="relative flex w-[265px] flex-col rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-2xs transition-colors duration-200 hover:border-slate-400 hover:shadow-md cursor-pointer"
                               onclick={() => selectNode(specialist)}
                             >
                               <div
@@ -1320,7 +1320,7 @@
         <div class="relative group">
           <button
             type="button"
-            class="panel relative flex w-full flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 text-left transition-all duration-300 hover:border-slate-400 hover:shadow-md cursor-pointer"
+            class="panel relative flex w-full flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 text-left transition-colors duration-300 hover:border-slate-400 hover:shadow-md cursor-pointer"
             onclick={() => selectNode(node)}
           >
             <div>
@@ -1484,7 +1484,7 @@
           <div class="relative group">
             <button
               type="button"
-              class="panel relative flex w-full flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 text-left transition-all duration-300 hover:border-slate-400 hover:shadow-md cursor-pointer"
+              class="panel relative flex w-full flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 text-left transition-colors duration-300 hover:border-slate-400 hover:shadow-md cursor-pointer"
               onclick={() => selectNode(ret)}
             >
               <div>
@@ -1546,7 +1546,7 @@
                 <!-- Legacy Contributions -->
                 <div class="mt-4 space-y-1.5 border-t border-slate-100 pt-3">
                   <div
-                    class="text-[10.5px] font-bold uppercase tracking-wider text-slate-500"
+                    class="text-[10.5px] font-bold text-slate-500"
                   >
                     ผลงานและบทบาทสำคัญ:
                   </div>
@@ -1840,7 +1840,7 @@
       <!-- Key Responsibilities or Legacy Contributions -->
       <div class="mt-5">
         <h4
-          class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 mb-2"
+          class="text-xs font-bold text-slate-500 flex items-center gap-1.5 mb-2"
         >
           {#if selectedNode.isRetired}
             <Award size={13} class="text-slate-500" />
@@ -1868,7 +1868,7 @@
       {#if selectedNode.skills && selectedNode.skills.length > 0}
         <div class="mt-5">
           <h4
-            class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 mb-2"
+            class="text-xs font-bold text-slate-500 flex items-center gap-1.5 mb-2"
           >
             <Sparkles size={13} class="text-slate-400" />
             ระบบและทักษะที่เกี่ยวข้อง

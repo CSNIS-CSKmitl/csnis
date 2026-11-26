@@ -1,5 +1,7 @@
 # CSNIS Network Infrastructure
 
+[แผนภาพเส้นทางการกดใช้งานและไฟล์ที่ถูกเรียก](CLICK_FLOW.md)
+
 A real Svelte 5 / SvelteKit application with Tailwind CSS 4 and official shadcn-svelte Button and Switch components (vendored through the shadcn-svelte CLI). Flat navy, blue, white and light-gray theme, with no gradients.
 
 ## Run locally
@@ -24,13 +26,13 @@ The static adapter prerenders every route into `build/`, with directory-style UR
 
 ## Routes
 
-| Page | Route |
-| --- | --- |
-| Home | `/` |
-| Services | `/services/` |
+| Page           | Route              |
+| -------------- | ------------------ |
+| Home           | `/`                |
+| Services       | `/services/`       |
 | Infrastructure | `/infrastructure/` |
-| Live Topology | `/topology/` |
-| Contact | `/contact/` |
+| Live Topology  | `/topology/`       |
+| Contact        | `/contact/`        |
 
 Shared navigation and footer live in `src/routes/+layout.svelte`; shared colors and responsive foundations in `src/app.css`. PageHeader, status badges, topology nodes/map, details and recent events are reusable components in `src/lib/components`. Service content lives in `src/lib/data/services.ts`.
 
@@ -64,3 +66,12 @@ The referenced conversation and its uploaded CSS supplied the design direction: 
 Documentation consulted: [shadcn-svelte](https://shadcn-svelte.com/docs/migration) and [SvelteKit static adapter](https://svelte.dev/docs/kit/adapter-static).
 
 Responsive layouts are implemented for mobile, tablet and desktop; the logical topology map scrolls horizontally on narrow screens to keep device labels legible. Keyboard users can focus the scroll region and inspect nodes. Visual browser QA was not requested and has not been claimed.
+
+## GitHub Actions deploy
+
+วิธีตั้งค่า SSH, ENV_FILE, PM2 และ deploy อัตโนมัติ: [คู่มือ deploy](https://github.com/CSNIS-CSKmitl/Docs/blob/main/Projects/csnis-portal/docs/DEPLOY.md)
+
+## เอกสารกฎหมาย
+
+- [นโยบายความเป็นส่วนตัว](https://csnis.cskmitl.com/privacy)
+- [ข้อกำหนดการใช้งาน](https://csnis.cskmitl.com/terms)

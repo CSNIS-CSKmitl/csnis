@@ -1,10 +1,22 @@
-import adapter from '@sveltejs/adapter-node';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import { readFileSync } from "node:fs";
+import adapter from "@sveltejs/adapter-node";
+import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
+
+const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"));
 
 /** @type {import('@sveltejs/kit').Config} */
-export default {
+const config = {
   preprocess: vitePreprocess({ style: false }),
+  compilerOptions: {
+    runes: ({ filename }) =>
+      filename.split(/[/\\]/).includes("node_modules") ? undefined : true,
+  },
   kit: {
-    adapter: adapter({ out: 'build' })
-  }
+    adapter: adapter({ out: "build" }),
+    version: {
+      name: pkg.version,
+    },
+  },
 };
+
+export default config;
